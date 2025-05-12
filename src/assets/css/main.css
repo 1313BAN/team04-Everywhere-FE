@@ -1,0 +1,54 @@
+/* 전역 스타일 */
+body {
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: var(--font-md);
+  background-color: var(--white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+button {
+  font-family: inherit;
+}
+
+/* 유틸리티 클래스 */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none;
+  }
+}

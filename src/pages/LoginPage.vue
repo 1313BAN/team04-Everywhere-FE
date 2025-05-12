@@ -36,19 +36,19 @@ const errorMessage = ref('')
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/login', {
+    const response = await axios.post('/api/auth/login', {
       userId: userId.value,
       password: password.value,
     })
 
-    const { accessToken, nickname } = response.data.data
+    const { accessToken, refreshToken } = response.data.data
 
     // 토큰과 닉네임 저장
     localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('nickname', nickname)
+    localStorage.setItem('refreshToken', refreshToken)
+    console.log(accessToken)
 
-    // 상태 반영
-    userStore.login(nickname)
+    userStore.login(userId.value)
 
     // 메인 페이지로 이동
     router.push('/')
