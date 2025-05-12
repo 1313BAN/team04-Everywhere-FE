@@ -7,10 +7,19 @@
         </div>
 
         <div class="right-nav">
+          <p style="color: yellow">로그인 상태: {{ isLoggedIn }}</p>
+          <!-- 확인용 -->
+
           <button class="nav-button" @click="showMap">지도 보기</button>
-          <button class="nav-button" @click="showProfile">프로필</button>
-          <button class="nav-button" @click="signup">회원가입</button>
-          <button class="nav-button" @click="login">로그인</button>
+
+          <template v-if="isLoggedIn">
+            <button class="nav-button" type="button" @click="showProfile">마이페이지</button>
+            <button class="nav-button" type="button" @click="logout">로그아웃</button>
+          </template>
+          <template v-else>
+            <button class="nav-button" type="button" @click="signup">회원가입</button>
+            <button class="nav-button" type="button" @click="login">로그인</button>
+          </template>
         </div>
       </nav>
     </div>
@@ -19,29 +28,25 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/user'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
+const userStore = useUserStore()
+const { isLoggedIn } = storeToRefs(userStore)
 
-const goBack = () => {
-  router.push('/')
-}
-
-const showMap = () => {
-  // 지도 기능 구현
-  console.log('지도 보기 기능')
-}
-
-const showProfile = () => {
-  // 프로필 페이지로 이동
-  router.push('/profile')
-}
-
-const signup = () => {
-  router.push('/signup')
-}
-
+const goBack = () => router.push('/')
+const showMap = () => console.log('지도 보기 기능')
+const showProfile = () => router.push('/profile')
+const signup = () => router.push('/signup')
 const login = () => {
+  console.log('로그인 버튼 클릭됨') // 이게 콘솔에 출력되는지 확인
   router.push('/login')
+}
+
+const logout = () => {
+  userStore.logout()
+  router.push('/')
 }
 </script>
 

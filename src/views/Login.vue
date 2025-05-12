@@ -29,35 +29,41 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Header from '../components/Header.vue'
 import { userAuthService } from '../api/services/userAuthService'
+import { useUserStore } from '../stores/user' // 추가
+const userStore = useUserStore() // 추가
 
 const router = useRouter()
 const route = useRoute()
 
-// 상태 관리
 const userId = ref('')
 const password = ref('')
 const errorMessage = ref('')
 
-// 로그인 처리
 const handleLogin = async () => {
   try {
-    // 폼 유효성 검사
     if (!userId.value || !password.value) {
       errorMessage.value = '아이디와 비밀번호를 입력해주세요.'
       return
     }
 
     // 로그인 API 호출
-    await userAuthService.login({
+    const response = await userAuthService.login({
       userId: userId.value,
       password: password.value,
     })
 
-    // 리다이렉트 처리
+    const { accessToken, refreshToken } = response.data
+
+    // 토큰 저장
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('refreshToken', refreshToken)
+
+    // 상태 업데이트: store에 로그인 반영
+    userStore.login(userId.value)
+
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
   } catch (err) {
-    // 에러 처리
     if (err.response?.status === 401) {
       errorMessage.value = '아이디 또는 비밀번호가 올바르지 않습니다.'
     } else {
