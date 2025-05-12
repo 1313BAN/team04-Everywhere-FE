@@ -40,21 +40,19 @@ const router = createRouter({
 
 // 네비게이션 가드: 인증이 필요한 페이지 처리
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
+  const isAuthenticated = !!localStorage.getItem('accessToken') // 키 이름 수정
 
-  // 인증이 필요한 페이지인지 확인
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
     if (!isAuthenticated) {
       next({
         path: '/login',
-        query: { redirect: to.fullPath }, // 로그인 후 원래 페이지로 돌아갈 수 있도록 URL 저장
+        query: { redirect: to.fullPath },
       })
     } else {
-      next() // 인증된 사용자는 통과
+      next()
     }
   } else {
-    next() // 인증이 필요 없는 페이지는 모두 통과
+    next()
   }
 })
 

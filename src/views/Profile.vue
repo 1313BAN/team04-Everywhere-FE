@@ -59,7 +59,6 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
-// 사용자 정보 로드
 const loadUserInfo = async () => {
   loading.value = true
   try {
@@ -67,7 +66,13 @@ const loadUserInfo = async () => {
     userInfo.value = response.data
   } catch (err) {
     console.error('사용자 정보 로드 실패:', err)
-    userInfo.value = null
+    // 추가: 401 또는 토큰 만료 시 로그인으로 이동
+    if (err.response?.status === 401) {
+      alert('로그인이 만료되었습니다. 다시 로그인해주세요.')
+      router.push('/login')
+    } else {
+      userInfo.value = null
+    }
   } finally {
     loading.value = false
   }
