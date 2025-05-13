@@ -77,3 +77,87 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+:root {
+  /* 색상 */
+  --primary-color: #0079c2;
+  --secondary-color: #ff5722;
+  --light-gray: #f0f0f0;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #666;
+  --text-color: #333;
+  --white: #fff;
+
+  /* 폰트 크기 */
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 24px;
+
+  /* 간격 */
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 15px;
+  --spacing-lg: 20px;
+  --spacing-xl: 30px;
+
+  /* 테두리 */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+}
+
+/* 전역 스타일 */
+body {
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: var(--font-md);
+  background-color: var(--white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+button {
+  font-family: inherit;
+}
+
+/* 유틸리티 클래스 */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none;
+  }
+}

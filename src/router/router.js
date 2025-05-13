@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TravelHome from './views/TravelHome.vue'
+import TravelHome from '../views/TravelHome.vue'
 
 // 라우트 설정
+// views folder
 const routes = [
   {
     path: '/',
@@ -11,17 +12,17 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('./views/Login.vue'), // 지연 로딩
+    component: () => import('../views/Login.vue'), // 지연 로딩
   },
   {
     path: '/signup',
     name: 'Signup',
-    component: () => import('./views/Signup.vue'), // 지연 로딩
+    component: () => import('../views/Signup.vue'), // 지연 로딩
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('./views/Profile.vue'), // 지연 로딩
+    component: () => import('../views/Profile.vue'), // 지연 로딩
     meta: {
       requiresAuth: true, // 인증 필요 페이지
     },

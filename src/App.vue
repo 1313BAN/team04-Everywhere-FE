@@ -7,8 +7,7 @@
 </script>
 
 <style>
-@import './assets/css/variables.css';
-@import './assets/css/main.css';
+@import './index.css';
 
 body {
   margin: 0;
