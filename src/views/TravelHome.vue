@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="travel-home">
     <Header />
 
@@ -36,11 +36,66 @@
       </div>
     </div>
   </div>
+</template> -->
+<template>
+  <div class="travel-home font-sans text-gray-800 bg-white">
+    <!-- Header -->
+    <Header />
+
+    <!-- Hero/Search Section -->
+    <section
+      class="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white text-center py-16 px-4"
+    >
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">여기저기서 추억을 쌓아보세요</h2>
+      <div class="flex flex-col md:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
+        <input
+          type="text"
+          placeholder="어디로 떠나실 건가요?"
+          v-model="searchDestination"
+          class="w-full md:flex-1 px-4 py-3 rounded-md border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
+        />
+        <button
+          @click="searchTravel"
+          class="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-md transition"
+        >
+          계획 만들기
+        </button>
+      </div>
+    </section>
+
+    <!-- 추천 여행지 섹션 -->
+    <section class="py-12 px-4 max-w-7xl mx-auto">
+      <div class="text-center mb-8">
+        <h3 class="text-2xl font-bold">어떤 데가 좋을까요?</h3>
+        <p class="text-gray-500 mt-2">여행지를 선택하고 여정을 시작하세요!</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <RecommendedDestination
+          v-for="(destination, index) in recommendedDestinations"
+          :key="index"
+          :destination="destination"
+        />
+      </div>
+    </section>
+
+    <!-- 여행 옵션 섹션 -->
+    <section class="py-12 px-4 bg-gray-50">
+      <div class="text-center mb-8">
+        <h3 class="text-2xl font-bold">요즘 핫한 장소들</h3>
+        <p class="text-gray-500 mt-2">여기저기에서 인기 장소들을 추천합니다.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <TravelOption v-for="(option, index) in travelOptions" :key="index" :option="option" />
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import Header from '../components/Header.vue'
+import Header from '@/components/Header.vue'
 import RecommendedDestination from '../components/RecommendedDestination.vue'
 import TravelOption from '../components/TravelOption.vue'
 
@@ -68,12 +123,14 @@ const searchTravel = () => {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .travel-home {
   font-family: 'Noto Sans KR', sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  align-items: center;
 }
 
 .search-container {
@@ -83,6 +140,8 @@ const searchTravel = () => {
   flex-direction: column;
   align-items: center;
   color: white;
+  width: 100%;
+  text-align: center;
 }
 
 .search-container h2 {
@@ -96,6 +155,7 @@ const searchTravel = () => {
   gap: 10px;
   width: 100%;
   max-width: 600px;
+  align-items: center;
 }
 
 .search-box input {
@@ -103,6 +163,7 @@ const searchTravel = () => {
   font-size: 16px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  width: 100%;
 }
 
 .search-button {
@@ -113,10 +174,23 @@ const searchTravel = () => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  width: 100%;
+  max-width: 600px;
+}
+
+.recommendations-section,
+.travel-options-section {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .section-title {
-  margin: 30px 20px 15px;
+  margin: 30px 0 15px;
+  text-align: center;
+  width: 100%;
 }
 
 .section-title h3 {
@@ -134,6 +208,8 @@ const searchTravel = () => {
   overflow-x: auto;
   padding: 0 20px;
   gap: 10px;
+  width: 100%;
+  justify-content: center;
 }
 
 .options-container {
@@ -141,6 +217,8 @@ const searchTravel = () => {
   overflow-x: auto;
   padding: 0 20px;
   gap: 15px;
+  width: 100%;
+  justify-content: center;
 }
 
 @media (min-width: 768px) {
@@ -148,5 +226,19 @@ const searchTravel = () => {
     width: auto;
     padding: 12px 30px;
   }
+
+  .search-box {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .search-box input {
+    flex: 1;
+    max-width: 70%;
+  }
+
+  .search-button {
+    max-width: 200px;
+  }
 }
-</style>
+</style> -->

@@ -131,9 +131,6 @@ input {
   transition: background-color 0.2s;
 }
 
-.login-button:hover {
-}
-
 .error-message {
   color: #e53935;
   margin-top: 15px;

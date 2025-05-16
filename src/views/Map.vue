@@ -1,6 +1,7 @@
 <template>
   <div class="map-container">
     <!-- Search Box at the top -->
+    <button class="back-button" @click="goBack">← 뒤로가기</button>
     <button class="back-button" @click="goBack">
       <span>←</span>
     </button>
