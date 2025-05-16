@@ -1,13 +1,14 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router/router'
-import { createPinia } from 'pinia' // Pinia 임포트
+import { createPinia } from 'pinia'
+import './index.css' // Tailwind 포함된 CSS
 
 const app = createApp(App)
 
-const pinia = createPinia() // Pinia 인스턴스 생성
-app.use(pinia) // Pinia 등록
-app.use(router) // 라우터 등록
+const pinia = createPinia()
+app.use(pinia)
+app.use(router)
 
 app.config.errorHandler = (err, vm, info) => {
   console.error('Vue 앱 에러:', err)

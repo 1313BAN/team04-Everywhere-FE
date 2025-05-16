@@ -9,8 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.7",
     "@vueuse/core": "^13.1.0",
     "axios": "^1.9.0",
+    "i": "^0.3.7",
     "pinia": "^3.0.2",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
@@ -21,15 +23,31 @@
     "@eslint/json": "^0.12.0",
     "@eslint/markdown": "^6.4.0",
     "@vitejs/plugin-vue": "^5.2.3",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-vue": "^10.1.0",
     "globals": "^16.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
+    "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "sass": "^1.88.0",
+    "tailwindcss": "^3.4.3",
     "vite": "^6.3.5",
     "vitest": "^3.1.3"
-  }
+  },
+  "description": "'여기저기'는 여행 계획 및 추천 서비스를 제공하는 Vue.js 기반의 웹 애플리케이션입니다. 사용자는 여행지를 검색하고, 추천 여행지를 확인하며, 개인 계정을 통해 여행 계획을 관리할 수 있습니다.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SSAFY-13BAN/team04-Everywhere-FE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SSAFY-13BAN/team04-Everywhere-FE/issues"
+  },
+  "homepage": "https://github.com/SSAFY-13BAN/team04-Everywhere-FE#readme"
 }

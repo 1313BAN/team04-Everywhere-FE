@@ -7,8 +7,6 @@
 </script>
 
 <style>
-@import './index.css';
-
 body {
   margin: 0;
   padding: 0;

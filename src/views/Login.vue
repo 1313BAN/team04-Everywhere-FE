@@ -77,6 +77,12 @@ const handleLogin = async () => {
 .login-page {
   min-height: 100vh;
   background-color: var(--light-gray);
+  user-select: none; /* 전체 기본 텍스트 선택 방지 */
+}
+
+.login-page input,
+.login-page textarea {
+  user-select: text; /* 입력 가능한 요소는 선택 허용 */
 }
 
 .login-container {
@@ -102,6 +108,7 @@ label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
+  cursor: pointer;
 }
 
 input {
@@ -125,7 +132,6 @@ input {
 }
 
 .login-button:hover {
-  background-color: #0062a3;
 }
 
 .error-message {

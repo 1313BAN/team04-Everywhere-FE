@@ -36,7 +36,7 @@ const userStore = useUserStore()
 const { isLoggedIn } = storeToRefs(userStore)
 
 const goBack = () => router.push('/')
-const showMap = () => console.log('지도 보기 기능')
+const showMap = () => router.push('/showMap')
 const showProfile = () => router.push('/profile')
 const signup = () => router.push('/signup')
 const login = () => {

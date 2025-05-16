@@ -15,6 +15,11 @@ const routes = [
     component: () => import('../views/Login.vue'), // 지연 로딩
   },
   {
+    path: '/showMap',
+    name: 'ShowMap',
+    component: () => import('../views/Map.vue'), // 지연 로딩
+  },
+  {
     path: '/signup',
     name: 'Signup',
     component: () => import('../views/Signup.vue'), // 지연 로딩

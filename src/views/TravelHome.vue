@@ -77,7 +77,7 @@ const searchTravel = () => {
 }
 
 .search-container {
-  background-color: #0079c2;
+  background-color: #d0d0d0;
   padding: 40px 20px 60px;
   display: flex;
   flex-direction: column;
@@ -91,30 +91,28 @@ const searchTravel = () => {
 }
 
 .search-box {
-  width: 100%;
-  max-width: 600px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .search-box input {
-  padding: 12px 15px;
+  padding: 12px;
   font-size: 16px;
-  border: none;
   border-radius: 4px;
-  width: 100%;
+  border: 1px solid #ccc;
 }
 
 .search-button {
-  padding: 12px 0;
+  padding: 12px;
+  font-size: 16px;
   background-color: #ff5722;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
   cursor: pointer;
-  width: 100%;
 }
 
 .section-title {
@@ -146,10 +144,6 @@ const searchTravel = () => {
 }
 
 @media (min-width: 768px) {
-  .search-box {
-    flex-direction: row;
-  }
-
   .search-button {
     width: auto;
     padding: 12px 30px;
