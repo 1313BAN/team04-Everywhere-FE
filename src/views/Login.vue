@@ -51,7 +51,7 @@
             />
           </div>
           <div class="flex items-center text-sm">
-            <input id="remember" type="checkbox" class="mr-2" />
+            <input id="remember" v-model="rememberMe" type="checkbox" class="mr-2" />
             <label for="remember">로그인 정보 기억하기</label>
           </div>
           <button
@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { userAuthService } from '../api/services/userAuthService'
 import { useUserStore } from '../stores/user'
@@ -136,10 +136,16 @@ const nickname = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 const activeTab = ref('login')
+const rememberMe = ref(false)
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+watch(activeTab, () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+})
 
 const handleLogin = async () => {
   try {
@@ -156,7 +162,7 @@ const handleLogin = async () => {
     const { accessToken, nickname: serverNickname } = response.data
 
     if (accessToken) {
-      userStore.login(accessToken, serverNickname) // nickname이 백엔드 응답에 포함돼야 함
+      userStore.login(accessToken, serverNickname, rememberMe.value) // nickname이 백엔드 응답에 포함돼야 함
       router.push(route.query.redirect || '/')
     } else {
       throw new Error('토큰이 없습니다.')
@@ -173,6 +179,13 @@ const handleSignup = async () => {
       errorMessage.value = '모든 필드를 입력해주세요.'
       return
     }
+
+    // 비밀번호 유효성 검사 추가
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/
+    if (!passwordRegex.test(password.value)) {
+      errorMessage.value = '비밀번호는 8자 이상이며 숫자와, 특수문자를 포함해야 합니다.'
+      return
+    }
     await userAuthService.signup({
       userId: userId.value,
       password: password.value,
@@ -187,7 +200,8 @@ const handleSignup = async () => {
     errorMessage.value =
       err.response?.status === 403
         ? err.response.data?.data || '중복된 아이디입니다.'
-        : '회원가입에 실패했습니다.'
+        : err.response?.data?.message || '회원가입에 실패했습니다. 나중에 다시 시도해주세요.'
+    console.error('❌ 회원가입 실패:', err)
   }
 }
 </script>
