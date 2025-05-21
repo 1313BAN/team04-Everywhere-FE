@@ -114,9 +114,15 @@
             />
           </div>
           <form @submit.prevent="handleSignup">
+            <label class="flex items-center mt-2">
+              <input type="checkbox" v-model="agreed" class="mr-2" />
+              약관 및 개인정보처리방침에 동의합니다.
+            </label>
+
             <button
               type="submit"
-              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
+              :disabled="!agreed"
+              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold disabled:opacity-50"
             >
               회원가입
             </button>
@@ -125,8 +131,23 @@
           <p v-if="successMessage" class="text-green-600 text-sm mt-2">{{ successMessage }}</p>
         </div>
         <p class="text-xs text-center mt-4 text-gray-500">
-          가입하면 <a href="#" class="text-blue-500 underline">이용약관</a>과
-          <a href="#" class="text-blue-500 underline">개인정보처리방침</a>에 동의하게 됩니다.
+          가입하면
+          <router-link
+            to="/terms"
+            class="text-blue-500 underline"
+            aria-label="이용약관 보기"
+            target="_blank"
+            rel="noopener"
+            >이용약관</router-link
+          >과
+          <router-link
+            to="/privacy"
+            class="text-blue-500 underline"
+            aria-label="개인정보처리방침 보기"
+            target="_blank"
+            rel="noopener"
+            >개인정보처리방침</router-link
+          >에 동의하게 됩니다.
         </p>
         <div class="text-center mt-4 text-sm">
           이미 계정이 있으신가요?
@@ -155,6 +176,7 @@ const passwordConfirm = ref('')
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const agreed = ref(false)
 
 watch(activeTab, () => {
   errorMessage.value = ''
