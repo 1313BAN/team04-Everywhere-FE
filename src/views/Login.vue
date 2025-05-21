@@ -102,12 +102,23 @@
             />
             <p class="text-xs text-red-500 mt-1">8자 이상, 숫자와 특수문자를 포함해주세요</p>
           </div>
-          <button
-            @click="handleSignup"
-            class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
-          >
-            회원가입
-          </button>
+          <div>
+            <label class="block mb-1 text-sm font-medium">비밀번호 확인</label>
+            <input
+              v-model="passwordConfirm"
+              type="password"
+              class="w-full px-4 py-2 border rounded-md"
+              placeholder="비밀번호를 다시 입력하세요"
+            />
+          </div>
+          <form @submit.prevent="handleSignup">
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
+            >
+              회원가입
+            </button>
+          </form>
           <p v-if="errorMessage" class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
           <p v-if="successMessage" class="text-green-600 text-sm mt-2">{{ successMessage }}</p>
         </div>
@@ -137,6 +148,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const activeTab = ref('login')
 const rememberMe = ref(false)
+const passwordConfirm = ref('')
 
 const router = useRouter()
 const route = useRoute()
@@ -184,6 +196,12 @@ const handleSignup = async () => {
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/
     if (!passwordRegex.test(password.value)) {
       errorMessage.value = '비밀번호는 8자 이상이며 숫자와, 특수문자를 포함해야 합니다.'
+      return
+    }
+
+    // handleSignup 함수 내부 유효성 검사 부분에 추가
+    if (password.value !== passwordConfirm.value) {
+      errorMessage.value = '비밀번호가 일치하지 않습니다.'
       return
     }
     await userAuthService.signup({
