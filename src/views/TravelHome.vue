@@ -188,5 +188,12 @@
 </template>
 
 <script setup>
-import Header from '../components/Header.vue' // 경로는 실제 파일 위치에 맞게 수정
+import Header from '../components/Header.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goLogin = () => {
+  router.push('/login')
+}
 </script>

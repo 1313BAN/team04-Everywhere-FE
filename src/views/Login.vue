@@ -153,18 +153,18 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    const { accessToken, nickname } = response.data
+    const { accessToken, nickname: serverNickname } = response.data
 
     if (accessToken) {
-      userStore.login(accessToken, nickname) // nickname이 백엔드 응답에 포함돼야 함
+      userStore.login(accessToken, serverNickname) // nickname이 백엔드 응답에 포함돼야 함
       router.push(route.query.redirect || '/')
     } else {
       throw new Error('토큰이 없습니다.')
     }
   } catch (err) {
+    errorMessage.value =
+      err.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'
     console.error('❌ 로그인 실패:', err)
-    console.error('상태 코드:', err.response?.status)
-    console.error('서버 응답:', err.response?.data)
   }
 }
 const handleSignup = async () => {

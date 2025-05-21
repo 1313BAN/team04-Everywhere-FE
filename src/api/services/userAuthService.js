@@ -15,12 +15,8 @@ class UserAuthService {
    * @returns {Promise<Object>} 회원가입 결과
    */
   async signup(userData) {
-    try {
-      const response = await axios.post('/api/user/signup', userData)
-      return response.data
-    } catch (error) {
-      throw error
-    }
+    const response = await axios.post('/api/user/signup', userData)
+    return response.data
   }
 
   /**
@@ -33,7 +29,7 @@ class UserAuthService {
   async login(credentials) {
     try {
       const response = await axios.post('/api/auth/login', credentials)
-      const { accessToken, refreshToken, nickname } = response.data
+      const { accessToken = '', refreshToken = '', nickname = '' } = response.data || {}
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken)
@@ -53,6 +49,10 @@ class UserAuthService {
    */
   logout() {
     localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('nickname')
+    // 보안과 일관성을 위해 모든 인증 관련 데이터를 제거
+    //로그아웃 시 저장된 모든 인증 관련 데이터를 제거
   }
 
   /**

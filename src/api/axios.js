@@ -4,9 +4,9 @@ import axios from 'axios'
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://70.12.60.56:8080',
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    withCredentials: true,
   },
 })
 

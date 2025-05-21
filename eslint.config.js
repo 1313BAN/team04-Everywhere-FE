@@ -12,7 +12,10 @@ export default defineConfig([
     files: ['**/*.{js,mjs,cjs,vue}'],
     ignores: ['*.d.ts', '**/coverage', '**/dist', '**/*.md'],
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
     plugins: {
       js,

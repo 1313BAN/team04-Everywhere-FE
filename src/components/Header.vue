@@ -11,9 +11,9 @@
 
       <!-- 내비게이션 -->
       <nav class="hidden md:flex gap-6">
-        <a href="/map" class="text-white hover:underline">지도보기</a>
-        <a href="#" class="text-white hover:underline">게시글 보기</a>
-        <a href="#" class="text-white hover:underline">공지사항</a>
+        <RouterLink to="/map" class="text-white hover:underline">지도보기</RouterLink>
+        <RouterLink to="/posts" class="text-white hover:underline">게시글 보기</RouterLink>
+        <RouterLink to="/notice" class="text-white hover:underline">공지사항</RouterLink>
       </nav>
 
       <!-- 로그인 상태에 따른 버튼 -->
@@ -46,6 +46,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user' // 경로는 맞게 수정
 

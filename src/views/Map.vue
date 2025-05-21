@@ -17,7 +17,8 @@ const categories = reactive([
 
 const searchPlaces = () => {
   if (!searchKeyword.value.trim()) return
-  console.log(`Searching for: ${searchKeyword.value}`)
+  // 검색 이벤트 발생 또는 상태 업데이트
+  // 필요한 경우 이벤트 발생하여 KakaoMap 컴포넌트에 알림
 }
 
 const clearSearch = () => {
@@ -69,8 +70,17 @@ const selectCategory = (category) => {
       </div>
     </div>
 
-    <!-- ✅ 카카오맵 컴포넌트 삽입 -->
-    <KakaoMap />
+    <!-- 카카오맵 컴포넌트 삽입 
+    KakaoMap 컴포넌트 통합
+    KakaoMap 컴포넌트가 성공적으로 통합되었습니다. 
+    그러나 현재는 props나 이벤트를 통한 상호작용이 없습니다. 
+    이로 인해 검색어나 카테고리 선택이 지도에 반영되지 않을 수 있습니다.
+    컴포넌트 간 데이터 흐름을 설정하여 사용자 입력이 지도에 반영되도록 하세요.-->
+    <KakaoMap
+      :searchKeyword="searchKeyword"
+      :selectedCategory="selectedCategory"
+      @search-completed="handleSearchCompleted"
+    />
   </div>
 </template>
 

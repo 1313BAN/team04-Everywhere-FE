@@ -1,3 +1,4 @@
+/* eslint-env node */
 // vite.config.js
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
@@ -11,11 +12,11 @@ export default defineConfig({
     },
   },
 
-  // ✅ 여기에 프록시 추가!
+  // 여기에 프록시 추가!
   server: {
     proxy: {
       '/api': {
-        target: 'http://70.12.60.56:8080', // <- 백엔드 포트에 맞춰 바꿔줘야 함!
+        target: process.env.VITE_API_URL || 'http://70.12.60.56:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
