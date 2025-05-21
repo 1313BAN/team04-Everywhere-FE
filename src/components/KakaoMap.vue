@@ -20,18 +20,32 @@ const kakaoMarkers = ref([])
 
 const isLoading = ref(false)
 const errorMessage = ref('')
-const isMapReady = ref(false) // 지도 준비 여부
+const isMapReady = ref(false)
 
+const props = defineProps({
+  searchKeyword: {
+    type: String,
+    default: '',
+  },
+  selectedCategory: {
+    type: String,
+    default: null,
+  },
+})
+
+const emit = defineEmits(['search-completed', 'map-info-updated'])
+
+// 지도 상태 추적
 const watchMapInfo = () => {
   if (!map.value) return
 
   const level = map.value.getLevel()
   const center = map.value.getCenter()
   const mapTypeId = map.value.getMapTypeId()
-  const bounds = map.value.getBounds()
+  const mapBounds = map.value.getBounds()
 
-  const swLatLng = bounds.getSouthWest()
-  const neLatLng = bounds.getNorthEast()
+  const swLatLng = mapBounds.getSouthWest()
+  const neLatLng = mapBounds.getNorthEast()
 
   console.log('📌 지도 정보')
   console.log('지도 레벨:', level)
@@ -53,21 +67,7 @@ const watchMapInfo = () => {
   })
 }
 
-// props 정의
-const props = defineProps({
-  searchKeyword: {
-    type: String,
-    default: '',
-  },
-  selectedCategory: {
-    type: String,
-    default: null,
-  },
-})
-
-const emit = defineEmits(['search-completed'])
-
-// Kakao Maps 스크립트 로드
+// 카카오맵 스크립트 로드
 const loadKakaoMapsScript = () => {
   return new Promise((resolve) => {
     if (window.kakao && window.kakao.maps) {
@@ -83,9 +83,9 @@ const loadKakaoMapsScript = () => {
   })
 }
 
-// 관광지 정보 불러와 마커 렌더링
+// 관광지 데이터 불러오기 + 마커 렌더링
 const fetchAndRenderAttractions = async () => {
-  if (!map.value) return // map 준비 확인
+  if (!map.value) return
 
   isLoading.value = true
   errorMessage.value = ''
@@ -93,6 +93,18 @@ const fetchAndRenderAttractions = async () => {
     const params = {}
     if (props.searchKeyword) params.keyword = props.searchKeyword
     if (props.selectedCategory) params.category = props.selectedCategory
+
+    // 지도 정보 추가
+    const level = map.value.getLevel()
+    const mapBounds = map.value.getBounds()
+    const swLatLng = mapBounds.getSouthWest()
+    const neLatLng = mapBounds.getNorthEast()
+
+    params.level = level
+    params.swLat = swLatLng.getLat()
+    params.swLng = swLatLng.getLng()
+    params.neLat = neLatLng.getLat()
+    params.neLng = neLatLng.getLng()
 
     const response = await axios.get('/api/map', { params })
     const attractions = response.data.data.attractions
@@ -102,7 +114,8 @@ const fetchAndRenderAttractions = async () => {
     kakaoMarkers.value.forEach((marker) => marker.setMap(null))
     kakaoMarkers.value = []
 
-    const bounds = new window.kakao.maps.LatLngBounds()
+    // 새 마커 추가
+    const markerBounds = new window.kakao.maps.LatLngBounds()
     const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png'
     const imageSize = new window.kakao.maps.Size(24, 35)
 
@@ -126,11 +139,11 @@ const fetchAndRenderAttractions = async () => {
       })
 
       kakaoMarkers.value.push(marker)
-      bounds.extend(position)
+      markerBounds.extend(position)
     })
 
     if (attractions.length > 1) {
-      map.value.setBounds(bounds)
+      map.value.setBounds(markerBounds)
     }
   } catch (error) {
     console.error('❌ 관광지 데이터를 불러오지 못했습니다:', error)
@@ -150,13 +163,13 @@ onMounted(async () => {
       level: 11,
     })
 
-    isMapReady.value = true // 지도 준비 완료
+    isMapReady.value = true
     await fetchAndRenderAttractions()
     window.kakao.maps.event.addListener(map.value, 'idle', watchMapInfo)
   })
 })
 
-// props 변경 시 자동 갱신
+// props 변경 시 마커 다시 렌더링
 watch(
   () => [props.searchKeyword, props.selectedCategory],
   async () => {
@@ -166,7 +179,7 @@ watch(
   { deep: true }
 )
 
-// 컴포넌트 언마운트 시 마커 제거
+// 언마운트 시 마커 제거
 onUnmounted(() => {
   kakaoMarkers.value.forEach((marker) => marker.setMap(null))
 })
