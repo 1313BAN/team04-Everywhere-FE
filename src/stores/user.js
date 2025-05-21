@@ -2,28 +2,34 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const isLoggedIn = ref(false)
-  const nickname = ref('')
+  const isLoggedIn = ref(!!localStorage.getItem('accessToken'))
+  const nickname = ref(localStorage.getItem('nickname') || '')
 
-  const login = (userNickname) => {
+  const login = (accessToken, userNickname) => {
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('nickname', userNickname)
+
     isLoggedIn.value = true
     nickname.value = userNickname
-    localStorage.setItem('nickname', userNickname)
-    localStorage.setItem('accessToken', 'TOKEN') // 실제 토큰은 axios에서 따로 저장
   }
 
   const logout = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('nickname')
+
     isLoggedIn.value = false
     nickname.value = ''
-    localStorage.removeItem('nickname')
-    localStorage.removeItem('accessToken')
   }
 
   const initUser = () => {
+    const accessToken = localStorage.getItem('accessToken')
     const savedNickname = localStorage.getItem('nickname')
-    if (savedNickname) {
+    if (accessToken && savedNickname) {
       isLoggedIn.value = true
       nickname.value = savedNickname
+    } else {
+      isLoggedIn.value = false
+      nickname.value = ''
     }
   }
 

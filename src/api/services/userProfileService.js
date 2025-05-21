@@ -1,4 +1,4 @@
-import axios from '../axios'
+import axios from '@/api/axios'
 
 /**
  * 사용자 프로필 서비스

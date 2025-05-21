@@ -1,19 +1,23 @@
+import './index.css'
+// main.js
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router/router'
-import { createPinia } from 'pinia'
-import './index.css' // Tailwind 포함된 CSS
+import { useUserStore } from './stores/user'
+import piniaPersistedstate from 'pinia-plugin-persistedstate'
 
+// 1. Pinia 설정
+const pinia = createPinia()
+pinia.use(piniaPersistedstate)
+
+// 2. 앱 생성 및 마운트
 const app = createApp(App)
 
-const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-app.config.errorHandler = (err, vm, info) => {
-  console.error('Vue 앱 에러:', err)
-  console.error('컴포넌트:', vm)
-  console.error('정보:', info)
-}
-
 app.mount('#app')
+
+const userStore = useUserStore()
+userStore.initUser()

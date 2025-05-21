@@ -6,15 +6,16 @@ const instance = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    withCredentials: true,
   },
 })
 
 // 요청 인터셉터: 토큰 자동 추가
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    const accessToken = localStorage.getItem('accessToken')
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
     }
     return config
   },

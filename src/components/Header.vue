@@ -1,202 +1,65 @@
 <template>
-  <header class="app-header">
-    <div class="container">
-      <nav class="main-nav">
-        <div class="left-nav">
-          <button class="menu-button" @click="goBack">여기저기</button>
-        </div>
+  <header
+    class="fixed w-full top-0 z-50 transition-all duration-300 bg-transparent"
+    id="site-header"
+  >
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <!-- 로고 -->
+      <div class="text-white text-2xl font-bold cursor-pointer" @click="goHome">
+        여기<span class="text-yellow-400">저기</span>
+      </div>
 
-        <div class="right-nav">
-          <p style="color: yellow">로그인 상태: {{ isLoggedIn }}</p>
-          <!-- 확인용 -->
-
-          <button class="nav-button" @click="showMap">지도 보기</button>
-
-          <template v-if="isLoggedIn">
-            <button class="nav-button" type="button" @click="showProfile">마이페이지</button>
-            <button class="nav-button" type="button" @click="logout">로그아웃</button>
-          </template>
-          <template v-else>
-            <button class="nav-button" type="button" @click="signup">회원가입</button>
-            <button class="nav-button" type="button" @click="login">로그인</button>
-          </template>
-        </div>
+      <!-- 내비게이션 -->
+      <nav class="hidden md:flex gap-6">
+        <a href="/map" class="text-white hover:underline">지도보기</a>
+        <a href="#" class="text-white hover:underline">게시글 보기</a>
+        <a href="#" class="text-white hover:underline">공지사항</a>
       </nav>
+
+      <!-- 로그인 상태에 따른 버튼 -->
+      <div v-if="isLoggedIn" class="flex items-center gap-3">
+        <span class="text-white font-semibold">{{ nickname }}님! 반가워요!</span>
+        <button
+          class="border-2 border-white text-white px-4 py-1 rounded hover:bg-white hover:text-blue-600 transition"
+          @click="goProfile"
+        >
+          마이페이지
+        </button>
+        <button
+          class="border-2 border-white text-white px-4 py-1 rounded hover:bg-white hover:text-blue-600 transition"
+          @click="handleLogout"
+        >
+          로그아웃
+        </button>
+      </div>
+
+      <button
+        v-else
+        @click="goLogin"
+        class="border-2 border-white text-white px-4 py-2 rounded hover:bg-white hover:text-blue-600 transition"
+      >
+        시작하기
+      </button>
     </div>
   </header>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { useUserStore } from '../stores/user'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { useUserStore } from '@/stores/user' // 경로는 맞게 수정
 
 const router = useRouter()
 const userStore = useUserStore()
-const { isLoggedIn } = storeToRefs(userStore)
-const mobileMenuOpen = ref(false)
+const { isLoggedIn, nickname } = storeToRefs(userStore)
 
-const goBack = () => router.push('/')
-const showMap = () => {
-  mobileMenuOpen.value = false
-  router.push('/showMap')
-}
-const showProfile = () => {
-  mobileMenuOpen.value = false
-  router.push('/profile')
-}
-const signup = () => {
-  mobileMenuOpen.value = false
-  router.push('/signup')
-}
-const login = () => {
-  console.log('로그인 버튼 클릭됨')
-  mobileMenuOpen.value = false
-  router.push('/login')
-}
+const goHome = () => router.push('/')
+const goLogin = () => router.push('/login')
+const goProfile = () => router.push('/profile')
 
-const logout = () => {
-  mobileMenuOpen.value = false
+const handleLogout = () => {
   userStore.logout()
   router.push('/')
-}
-
-const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value
+  location.reload()
 }
 </script>
-
-<style scoped>
-.app-header {
-  background-color: #0079c2;
-  padding: 15px 0;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
-.main-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left-nav {
-  display: flex;
-  align-items: center;
-}
-
-.menu-button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  transition: opacity 0.2s ease;
-}
-
-.menu-button:hover {
-  opacity: 0.8;
-}
-
-.right-nav {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.nav-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.nav-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* 모바일 메뉴 관련 스타일 */
-.mobile-menu-button {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-}
-
-.hamburger-line {
-  display: block;
-  width: 24px;
-  height: 2px;
-  margin: 5px 0;
-  background-color: white;
-  transition: 0.3s;
-}
-
-.mobile-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #0079c2;
-  padding: 15px;
-  flex-direction: column;
-  gap: 10px;
-  transform: translateY(-20px);
-  opacity: 0;
-  transition: all 0.3s ease;
-  z-index: 999;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-menu.active {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.mobile-nav-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  font-size: 16px;
-  padding: 12px;
-  width: 100%;
-  text-align: left;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.mobile-nav-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 768px) {
-  .right-nav {
-    display: none;
-  }
-
-  .mobile-menu-button {
-    display: block;
-  }
-
-  .mobile-menu {
-    display: flex;
-  }
-}
-</style>

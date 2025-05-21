@@ -1,74 +1,18 @@
-<template>
-  <div class="map-container">
-    <!-- Search Box at the top -->
-    <button class="back-button" @click="goBack">← 뒤로가기</button>
-    <button class="back-button" @click="goBack">
-      <span>←</span>
-    </button>
-    <div class="search-box">
-      <div class="search-input-container">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          placeholder="지도에서 검색"
-          class="search-input"
-          @keyup.enter="searchPlaces"
-        />
-        <button v-if="searchKeyword" @click="clearSearch" class="clear-button">
-          <span>×</span>
-        </button>
-        <button @click="searchPlaces" class="search-button">
-          <span>🔍</span>
-        </button>
-      </div>
-
-      <!-- Category Buttons -->
-      <div class="category-container">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          class="category-item"
-          :class="{ active: selectedCategory === category.id }"
-          @click="selectCategory(category)"
-        >
-          <div class="category-icon">{{ category.icon }}</div>
-          <div class="category-name">{{ category.name }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="map-container">
-      <div id="map" ref="mapContainer"></div>
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { useTemplateRef, onMounted, ref, reactive } from 'vue'
-
-const mapContainer = ref(null)
-const mapOption = {
-  center: new window.kakao.maps.LatLng(37.5014, 127.0394),
-  level: 1,
-}
-
-onMounted(() => {
-  window.kakao.maps.load(() => {
-    const map = new window.kakao.maps.Map(mapContainer.value, mapOption)
-  })
-})
+import { ref, reactive } from 'vue'
+import KakaoMap from '@/components/KakaoMap.vue'
 
 const searchKeyword = ref('')
 const selectedCategory = ref(null)
 
 const categories = reactive([
-  { id: 'restaurant', name: '음식점', icon: '🍽️' },
-  { id: 'cafe', name: '카페', icon: '☕' },
-  { id: 'convenience', name: '편의점', icon: '🏪' },
-  { id: 'subway', name: '지하철', icon: '🚇' },
-  { id: 'bus', name: '버스', icon: '🚌' },
-  { id: 'hospital', name: '병원', icon: '🏥' },
-  { id: 'pharmacy', name: '약국', icon: '💊' },
-  { id: 'bank', name: '은행', icon: '🏦' },
+  { id: 'A01', name: '자연', icon: '🌳' },
+  { id: 'A02', name: '문화', icon: '🏯' },
+  { id: 'A03', name: '레포츠', icon: '🚵' },
+  { id: 'A04', name: '쇼핑', icon: '🎁' },
+  { id: 'A05', name: '식당', icon: '🍽️' },
+  { id: 'B02', name: '숙박', icon: '🏨' },
+  { id: 'C01', name: '추천코스', icon: '💯' },
 ])
 
 const searchPlaces = () => {
@@ -90,6 +34,45 @@ const selectCategory = (category) => {
   }
 }
 </script>
+
+<template>
+  <div class="map-container">
+    <!-- Search UI -->
+    <div class="search-box">
+      <div class="search-input-container">
+        <input
+          v-model="searchKeyword"
+          type="text"
+          placeholder="지도에서 검색"
+          class="search-input"
+          @keyup.enter="searchPlaces"
+        />
+        <button v-if="searchKeyword" @click="clearSearch" class="clear-button">
+          <span>×</span>
+        </button>
+        <button @click="searchPlaces" class="search-button">
+          <span>🔍</span>
+        </button>
+      </div>
+
+      <div class="category-container">
+        <div
+          v-for="category in categories"
+          :key="category.id"
+          class="category-item"
+          :class="{ active: selectedCategory === category.id }"
+          @click="selectCategory(category)"
+        >
+          <div class="category-icon">{{ category.icon }}</div>
+          <div class="category-name">{{ category.name }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ 카카오맵 컴포넌트 삽입 -->
+    <KakaoMap />
+  </div>
+</template>
 
 <style scoped>
 /* Container for the entire map view */
