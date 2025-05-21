@@ -22,6 +22,37 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const isMapReady = ref(false) // 지도 준비 여부
 
+const watchMapInfo = () => {
+  if (!map.value) return
+
+  const level = map.value.getLevel()
+  const center = map.value.getCenter()
+  const mapTypeId = map.value.getMapTypeId()
+  const bounds = map.value.getBounds()
+
+  const swLatLng = bounds.getSouthWest()
+  const neLatLng = bounds.getNorthEast()
+
+  console.log('📌 지도 정보')
+  console.log('지도 레벨:', level)
+  console.log('중심 좌표:', center.getLat(), center.getLng())
+  console.log('지도 타입:', mapTypeId)
+  console.log('영역 정보:', {
+    sw: { lat: swLatLng.getLat(), lng: swLatLng.getLng() },
+    ne: { lat: neLatLng.getLat(), lng: neLatLng.getLng() },
+  })
+
+  emit('map-info-updated', {
+    level,
+    center: { lat: center.getLat(), lng: center.getLng() },
+    type: mapTypeId,
+    bounds: {
+      sw: { lat: swLatLng.getLat(), lng: swLatLng.getLng() },
+      ne: { lat: neLatLng.getLat(), lng: neLatLng.getLng() },
+    },
+  })
+}
+
 // props 정의
 const props = defineProps({
   searchKeyword: {
@@ -121,6 +152,7 @@ onMounted(async () => {
 
     isMapReady.value = true // 지도 준비 완료
     await fetchAndRenderAttractions()
+    window.kakao.maps.event.addListener(map.value, 'idle', watchMapInfo)
   })
 })
 
