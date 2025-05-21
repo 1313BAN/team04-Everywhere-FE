@@ -4,6 +4,7 @@ import axios from 'axios'
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://70.12.60.56:8080',
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,9 +13,9 @@ const instance = axios.create({
 // 요청 인터셉터: 토큰 자동 추가
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    const accessToken = localStorage.getItem('accessToken')
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
     }
     return config
   },

@@ -1,43 +1,187 @@
 <template>
-  <div class="login-page">
-    <Header />
+  <div
+    class="auth-page min-h-screen bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center py-10"
+  >
+    <div class="absolute top-5 left-5 text-white font-semibold">
+      <router-link to="/"> ← 메인으로 돌아가기 </router-link>
+    </div>
 
-    <div class="login-container">
-      <h2>로그인</h2>
-
-      <div class="form-group">
-        <label for="userId">아이디</label>
-        <input type="text" id="userId" v-model="userId" />
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="flex border-b text-sm font-semibold text-gray-500">
+        <button
+          :class="[
+            'flex-1 py-3 text-center',
+            activeTab === 'login' ? 'text-blue-500 border-b-2 border-blue-500' : '',
+          ]"
+          @click="activeTab = 'login'"
+        >
+          로그인
+        </button>
+        <button
+          :class="[
+            'flex-1 py-3 text-center',
+            activeTab === 'signup' ? 'text-blue-500 border-b-2 border-blue-500' : '',
+          ]"
+          @click="activeTab = 'signup'"
+        >
+          회원가입
+        </button>
       </div>
 
-      <div class="form-group">
-        <label for="password">비밀번호</label>
-        <input type="password" id="password" v-model="password" />
+      <!-- 로그인 탭 -->
+      <div v-if="activeTab === 'login'" class="p-6">
+        <h2 class="text-2xl font-bold text-center mb-6">로그인</h2>
+        <div class="space-y-4">
+          <form @submit.prevent="handleLogin">
+            <div>
+              <label class="block mb-1 text-sm font-medium">아이디</label>
+              <input
+                v-model="userId"
+                type="text"
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="아이디을 입력하세요"
+              />
+            </div>
+            <div>
+              <label class="block mb-1 text-sm font-medium">비밀번호</label>
+              <input
+                v-model="password"
+                type="password"
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="비밀번호를 입력하세요"
+              />
+            </div>
+            <div class="flex items-center text-sm">
+              <input id="remember" v-model="rememberMe" type="checkbox" class="mr-2" />
+              <label for="remember">로그인 정보 기억하기</label>
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
+            >
+              로그인
+            </button>
+          </form>
+          <p v-if="errorMessage" class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
+        </div>
+        <div class="text-center mt-4 text-sm">
+          계정이 없으신가요?
+          <button @click="activeTab = 'signup'" class="text-blue-600 font-semibold">
+            회원가입
+          </button>
+        </div>
       </div>
 
-      <button class="login-button" @click="handleLogin">로그인</button>
+      <!-- 회원가입 탭 -->
+      <div v-else class="p-6">
+        <h2 class="text-2xl font-bold text-center mb-6">회원가입</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block mb-1 text-sm font-medium">이름</label>
+            <input
+              v-model="nickname"
+              type="text"
+              class="w-full px-4 py-2 border rounded-md"
+              placeholder="이름을 입력하세요"
+            />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-medium">아이디</label>
+            <input
+              v-model="userId"
+              type="text"
+              class="w-full px-4 py-2 border rounded-md"
+              placeholder="아이디을 입력하세요"
+            />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-medium">비밀번호</label>
+            <input
+              v-model="password"
+              type="password"
+              class="w-full px-4 py-2 border rounded-md"
+              placeholder="비밀번호를 입력하세요"
+            />
+            <p class="text-xs text-red-500 mt-1">8자 이상, 숫자와 특수문자를 포함해주세요</p>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-medium">비밀번호 확인</label>
+            <input
+              v-model="passwordConfirm"
+              type="password"
+              class="w-full px-4 py-2 border rounded-md"
+              placeholder="비밀번호를 다시 입력하세요"
+            />
+          </div>
+          <form @submit.prevent="handleSignup">
+            <label class="flex items-center mt-2">
+              <input type="checkbox" v-model="agreed" class="mr-2" />
+              약관 및 개인정보처리방침에 동의합니다.
+            </label>
 
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-      <p class="signup-link">계정이 없으신가요? <router-link to="/signup">회원가입</router-link></p>
+            <button
+              type="submit"
+              :disabled="!agreed"
+              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold disabled:opacity-50"
+            >
+              회원가입
+            </button>
+          </form>
+          <p v-if="errorMessage" class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
+          <p v-if="successMessage" class="text-green-600 text-sm mt-2">{{ successMessage }}</p>
+        </div>
+        <p class="text-xs text-center mt-4 text-gray-500">
+          가입하면
+          <router-link
+            to="/terms"
+            class="text-blue-500 underline"
+            aria-label="이용약관 보기"
+            target="_blank"
+            rel="noopener"
+            >이용약관</router-link
+          >과
+          <router-link
+            to="/privacy"
+            class="text-blue-500 underline"
+            aria-label="개인정보처리방침 보기"
+            target="_blank"
+            rel="noopener"
+            >개인정보처리방침</router-link
+          >에 동의하게 됩니다.
+        </p>
+        <div class="text-center mt-4 text-sm">
+          이미 계정이 있으신가요?
+          <button @click="activeTab = 'login'" class="text-blue-600 font-semibold">로그인</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import Header from '../components/Header.vue'
 import { userAuthService } from '../api/services/userAuthService'
-import { useUserStore } from '../stores/user' // 추가
-const userStore = useUserStore() // 추가
-
-const router = useRouter()
-const route = useRoute()
+import { useUserStore } from '../stores/user'
 
 const userId = ref('')
 const password = ref('')
+const nickname = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
+const activeTab = ref('login')
+const rememberMe = ref(false)
+const passwordConfirm = ref('')
+
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
+const agreed = ref(false)
+
+watch(activeTab, () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+})
 
 const handleLogin = async () => {
   try {
@@ -46,107 +190,66 @@ const handleLogin = async () => {
       return
     }
 
-    // 로그인 API 호출
     const response = await userAuthService.login({
       userId: userId.value,
       password: password.value,
     })
 
-    const { accessToken, refreshToken } = response.data
+    const { accessToken, nickname: serverNickname } = response.data
 
-    // 토큰 저장
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-
-    // 상태 업데이트: store에 로그인 반영
-    userStore.login(userId.value)
-
-    const redirectPath = route.query.redirect || '/'
-    router.push(redirectPath)
-  } catch (err) {
-    if (err.response?.status === 401) {
-      errorMessage.value = '아이디 또는 비밀번호가 올바르지 않습니다.'
+    if (accessToken) {
+      userStore.login(accessToken, serverNickname, rememberMe.value) // nickname이 백엔드 응답에 포함돼야 함
+      router.push(route.query.redirect || '/')
     } else {
-      errorMessage.value = '로그인에 실패했습니다.'
+      throw new Error('토큰이 없습니다.')
     }
+  } catch (err) {
+    errorMessage.value =
+      err.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'
+    console.error('❌ 로그인 실패:', err)
+  }
+}
+const handleSignup = async () => {
+  try {
+    if (!userId.value || !password.value || !nickname.value) {
+      errorMessage.value = '모든 필드를 입력해주세요.'
+      return
+    }
+
+    // 비밀번호 유효성 검사 추가
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/
+    if (!passwordRegex.test(password.value)) {
+      errorMessage.value = '비밀번호는 8자 이상이며 숫자와, 특수문자를 포함해야 합니다.'
+      return
+    }
+
+    // handleSignup 함수 내부 유효성 검사 부분에 추가
+    if (password.value !== passwordConfirm.value) {
+      errorMessage.value = '비밀번호가 일치하지 않습니다.'
+      return
+    }
+    await userAuthService.signup({
+      userId: userId.value,
+      password: password.value,
+      nickname: nickname.value,
+    })
+    successMessage.value = '회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.'
+    setTimeout(() => {
+      activeTab.value = 'login'
+      successMessage.value = ''
+    }, 1500)
+  } catch (err) {
+    errorMessage.value =
+      err.response?.status === 403
+        ? err.response.data?.data || '중복된 아이디입니다.'
+        : err.response?.data?.message || '회원가입에 실패했습니다. 나중에 다시 시도해주세요.'
+    console.error('❌ 회원가입 실패:', err)
   }
 }
 </script>
 
 <style scoped>
-.login-page {
-  min-height: 100vh;
-  background-color: var(--light-gray);
-  user-select: none; /* 전체 기본 텍스트 선택 방지 */
-}
-
-.login-page input,
-.login-page textarea {
-  user-select: text; /* 입력 가능한 요소는 선택 허용 */
-}
-
-.login-container {
-  max-width: 450px;
-  margin: 50px auto;
-  padding: 30px;
-  background-color: var(--white);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--primary-color);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-md);
-}
-
-.login-button {
-  width: 100%;
-  padding: 12px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-md);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.error-message {
-  color: #e53935;
-  margin-top: 15px;
-}
-
-.signup-link {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.signup-link a {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-.signup-link a:hover {
-  text-decoration: underline;
+.auth-page {
+  font-family: 'Noto Sans KR', sans-serif;
 }
 </style>

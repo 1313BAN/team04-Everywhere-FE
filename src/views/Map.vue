@@ -1,10 +1,44 @@
+<script setup>
+import { ref, reactive } from 'vue'
+import KakaoMap from '@/components/KakaoMap.vue'
+
+const searchKeyword = ref('')
+const selectedCategory = ref(null)
+
+const categories = reactive([
+  { id: 'A01', name: '자연', icon: '🌳' },
+  { id: 'A02', name: '문화', icon: '🏯' },
+  { id: 'A03', name: '레포츠', icon: '🚵' },
+  { id: 'A04', name: '쇼핑', icon: '🎁' },
+  { id: 'A05', name: '식당', icon: '🍽️' },
+  { id: 'B02', name: '숙박', icon: '🏨' },
+  { id: 'C01', name: '추천코스', icon: '💯' },
+])
+
+const searchPlaces = () => {
+  if (!searchKeyword.value.trim()) return
+  // 검색 이벤트 발생 또는 상태 업데이트
+  // 필요한 경우 이벤트 발생하여 KakaoMap 컴포넌트에 알림
+}
+
+const clearSearch = () => {
+  searchKeyword.value = ''
+}
+
+const selectCategory = (category) => {
+  if (selectedCategory.value === category.id) {
+    selectedCategory.value = null
+  } else {
+    selectedCategory.value = category.id
+    searchKeyword.value = category.name
+    searchPlaces()
+  }
+}
+</script>
+
 <template>
   <div class="map-container">
-    <!-- Search Box at the top -->
-    <button class="back-button" @click="goBack">← 뒤로가기</button>
-    <button class="back-button" @click="goBack">
-      <span>←</span>
-    </button>
+    <!-- Search UI -->
     <div class="search-box">
       <div class="search-input-container">
         <input
@@ -22,7 +56,6 @@
         </button>
       </div>
 
-      <!-- Category Buttons -->
       <div class="category-container">
         <div
           v-for="category in categories"
@@ -36,60 +69,20 @@
         </div>
       </div>
     </div>
-    <div class="map-container">
-      <div id="map" ref="mapContainer"></div>
-    </div>
+
+    <!-- 카카오맵 컴포넌트 삽입 
+    KakaoMap 컴포넌트 통합
+    KakaoMap 컴포넌트가 성공적으로 통합되었습니다. 
+    그러나 현재는 props나 이벤트를 통한 상호작용이 없습니다. 
+    이로 인해 검색어나 카테고리 선택이 지도에 반영되지 않을 수 있습니다.
+    컴포넌트 간 데이터 흐름을 설정하여 사용자 입력이 지도에 반영되도록 하세요.-->
+    <KakaoMap
+      :searchKeyword="searchKeyword"
+      :selectedCategory="selectedCategory"
+      @search-completed="handleSearchCompleted"
+    />
   </div>
 </template>
-
-<script setup>
-import { useTemplateRef, onMounted, ref, reactive } from 'vue'
-
-const mapContainer = ref(null)
-const mapOption = {
-  center: new window.kakao.maps.LatLng(37.5014, 127.0394),
-  level: 1,
-}
-
-onMounted(() => {
-  window.kakao.maps.load(() => {
-    const map = new window.kakao.maps.Map(mapContainer.value, mapOption)
-  })
-})
-
-const searchKeyword = ref('')
-const selectedCategory = ref(null)
-
-const categories = reactive([
-  { id: 'restaurant', name: '음식점', icon: '🍽️' },
-  { id: 'cafe', name: '카페', icon: '☕' },
-  { id: 'convenience', name: '편의점', icon: '🏪' },
-  { id: 'subway', name: '지하철', icon: '🚇' },
-  { id: 'bus', name: '버스', icon: '🚌' },
-  { id: 'hospital', name: '병원', icon: '🏥' },
-  { id: 'pharmacy', name: '약국', icon: '💊' },
-  { id: 'bank', name: '은행', icon: '🏦' },
-])
-
-const searchPlaces = () => {
-  if (!searchKeyword.value.trim()) return
-  console.log(`Searching for: ${searchKeyword.value}`)
-}
-
-const clearSearch = () => {
-  searchKeyword.value = ''
-}
-
-const selectCategory = (category) => {
-  if (selectedCategory.value === category.id) {
-    selectedCategory.value = null
-  } else {
-    selectedCategory.value = category.id
-    searchKeyword.value = category.name
-    searchPlaces()
-  }
-}
-</script>
 
 <style scoped>
 /* Container for the entire map view */

@@ -1,4 +1,5 @@
-import axios from '../axios'
+/* eslint-disable no-useless-catch */
+import axios from '@/api/axios'
 
 /**
  * 사용자 인증 서비스
@@ -14,12 +15,8 @@ class UserAuthService {
    * @returns {Promise<Object>} 회원가입 결과
    */
   async signup(userData) {
-    try {
-      const response = await axios.post('/api/user/signup', userData)
-      return response.data
-    } catch (error) {
-      throw error
-    }
+    const response = await axios.post('/api/user/signup', userData)
+    return response.data
   }
 
   /**
@@ -32,11 +29,12 @@ class UserAuthService {
   async login(credentials) {
     try {
       const response = await axios.post('/api/auth/login', credentials)
-      const { token } = response.data
+      const { accessToken = '', refreshToken = '', nickname = '' } = response.data || {}
 
-      // 토큰을 로컬 스토리지에 저장
-      if (token) {
-        localStorage.setItem('token', token)
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken)
+        localStorage.setItem('refreshToken', refreshToken)
+        localStorage.setItem('nickname', nickname) // ← 닉네임도 저장
       }
 
       return response.data
@@ -50,7 +48,11 @@ class UserAuthService {
    * 로컬 스토리지에서 토큰 제거
    */
   logout() {
-    localStorage.removeItem('token')
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('nickname')
+    // 보안과 일관성을 위해 모든 인증 관련 데이터를 제거
+    //로그아웃 시 저장된 모든 인증 관련 데이터를 제거
   }
 
   /**
@@ -58,7 +60,7 @@ class UserAuthService {
    * @returns {boolean} 토큰 존재 여부
    */
   isAuthenticated() {
-    return !!localStorage.getItem('token')
+    return !!localStorage.getItem('accessToken')
   }
 
   /**
@@ -66,7 +68,7 @@ class UserAuthService {
    * @returns {string|null} 토큰 문자열 또는 null
    */
   getToken() {
-    return localStorage.getItem('token')
+    return localStorage.getItem('accessToken')
   }
 }
 

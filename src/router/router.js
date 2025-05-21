@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TravelHome from '../views/TravelHome.vue'
 
 // 라우트 설정
 // views folder
@@ -7,7 +6,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: TravelHome,
+    component: () => import('@/views/TravelHome.vue'),
   },
   {
     path: '/login',
@@ -15,14 +14,9 @@ const routes = [
     component: () => import('../views/Login.vue'), // 지연 로딩
   },
   {
-    path: '/showMap',
-    name: 'ShowMap',
-    component: () => import('../views/Map.vue'), // 지연 로딩
-  },
-  {
-    path: '/signup',
-    name: 'Signup',
-    component: () => import('../views/Signup.vue'), // 지연 로딩
+    path: '/map',
+    name: 'Map',
+    component: () => import('../views/Map.vue'),
   },
   {
     path: '/profile',
