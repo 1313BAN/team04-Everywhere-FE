@@ -32,34 +32,36 @@
       <div v-if="activeTab === 'login'" class="p-6">
         <h2 class="text-2xl font-bold text-center mb-6">로그인</h2>
         <div class="space-y-4">
-          <div>
-            <label class="block mb-1 text-sm font-medium">아이디</label>
-            <input
-              v-model="userId"
-              type="text"
-              class="w-full px-4 py-2 border rounded-md"
-              placeholder="아이디을 입력하세요"
-            />
-          </div>
-          <div>
-            <label class="block mb-1 text-sm font-medium">비밀번호</label>
-            <input
-              v-model="password"
-              type="password"
-              class="w-full px-4 py-2 border rounded-md"
-              placeholder="비밀번호를 입력하세요"
-            />
-          </div>
-          <div class="flex items-center text-sm">
-            <input id="remember" v-model="rememberMe" type="checkbox" class="mr-2" />
-            <label for="remember">로그인 정보 기억하기</label>
-          </div>
-          <button
-            @click="handleLogin"
-            class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
-          >
-            로그인
-          </button>
+          <form @submit.prevent="handleLogin">
+            <div>
+              <label class="block mb-1 text-sm font-medium">아이디</label>
+              <input
+                v-model="userId"
+                type="text"
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="아이디을 입력하세요"
+              />
+            </div>
+            <div>
+              <label class="block mb-1 text-sm font-medium">비밀번호</label>
+              <input
+                v-model="password"
+                type="password"
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="비밀번호를 입력하세요"
+              />
+            </div>
+            <div class="flex items-center text-sm">
+              <input id="remember" v-model="rememberMe" type="checkbox" class="mr-2" />
+              <label for="remember">로그인 정보 기억하기</label>
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-blue-500 to-green-400 text-white py-2 rounded-md font-semibold"
+            >
+              로그인
+            </button>
+          </form>
           <p v-if="errorMessage" class="text-red-500 text-sm mt-2">{{ errorMessage }}</p>
         </div>
         <div class="text-center mt-4 text-sm">
