@@ -11,9 +11,15 @@
 
       <!-- 내비게이션 -->
       <nav class="hidden md:flex gap-6">
-        <RouterLink to="/map" class="text-white hover:underline">지도보기</RouterLink>
-        <RouterLink to="/posts" class="text-white hover:underline">게시글 보기</RouterLink>
-        <RouterLink to="/notice" class="text-white hover:underline">공지사항</RouterLink>
+        <span @click="navigateWithAuth('/map')" class="text-white hover:underline cursor-pointer"
+          >지도보기</span
+        >
+        <span @click="navigateWithAuth('/posts')" class="text-white hover:underline cursor-pointer"
+          >게시글 보기</span
+        >
+        <span @click="navigateWithAuth('/notice')" class="text-white hover:underline cursor-pointer"
+          >공지사항</span
+        >
       </nav>
 
       <!-- 로그인 상태에 따른 버튼 -->
@@ -21,7 +27,7 @@
         <span class="text-white font-semibold">{{ nickname }}님! 반가워요!</span>
         <button
           class="border-2 border-white text-white px-4 py-1 rounded hover:bg-white hover:text-blue-600 transition"
-          @click="goProfile"
+          @click="navigateWithAuth('/profile')"
         >
           마이페이지
         </button>
@@ -62,5 +68,13 @@ const handleLogout = () => {
   userStore.logout()
   router.push('/')
   location.reload()
+}
+
+const navigateWithAuth = (path) => {
+  if (!isLoggedIn.value) {
+    router.push('/login')
+  } else {
+    router.push(path)
+  }
 }
 </script>
