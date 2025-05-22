@@ -44,7 +44,6 @@ const handleMapInfo = (info) => {
 const kakaoMapRef = ref(null)
 
 const requestMarkers = async () => {
-  console.log('fsadsadfsf')
   if (!latestMapInfo.value) return
 
   const { level, bounds } = latestMapInfo.value
@@ -59,11 +58,13 @@ const requestMarkers = async () => {
     category: selectedCategory.value,
   }
 
-  const response = await axios.get('/api/map', { params })
-  const attractions = response.data.data.attractions
-
-  // ✅ KakaoMap 내부 마커 렌더링 함수 호출
-  kakaoMapRef.value?.renderAttractions(attractions)
+  try {
+    const { data } = await axios.get('/api/map', { params })
+    const attractions = data.data.attractions
+    kakaoMapRef.value?.renderAttractions(attractions)
+  } catch (err) {
+    console.error('마커 데이터 요청 실패:', err)
+  }
 }
 </script>
 
