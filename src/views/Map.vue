@@ -34,6 +34,11 @@ const selectCategory = (category) => {
     searchPlaces()
   }
 }
+
+const handleMapInfo = (info) => {
+  console.log('🛰️ 부모에서 받은 지도 정보:', info)
+  // 원하는 작업: API 요청, 상태 저장, 로그 찍기 등
+}
 </script>
 
 <template>
@@ -80,6 +85,7 @@ const selectCategory = (category) => {
       :searchKeyword="searchKeyword"
       :selectedCategory="selectedCategory"
       @search-completed="handleSearchCompleted"
+      @map-info-updated="handleMapInfo"
     />
   </div>
 </template>
