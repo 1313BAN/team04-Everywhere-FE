@@ -1,9 +1,10 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import KakaoMap from '@/components/KakaoMap.vue'
-
+import axios from '@/api/axios'
 const searchKeyword = ref('')
 const selectedCategory = ref(null)
+const latestMapInfo = ref(null) // watchMapInfo에서 전달된 최신 정보 저장
 
 const categories = reactive([
   { id: 'A01', name: '자연', icon: '🌳' },
@@ -36,8 +37,33 @@ const selectCategory = (category) => {
 }
 
 const handleMapInfo = (info) => {
-  console.log('🛰️ 부모에서 받은 지도 정보:', info)
-  // 원하는 작업: API 요청, 상태 저장, 로그 찍기 등
+  latestMapInfo.value = info
+  console.log('📍 지도 정보 저장됨:', info)
+}
+
+const kakaoMapRef = ref(null)
+
+const requestMarkers = async () => {
+  console.log('fsadsadfsf')
+  if (!latestMapInfo.value) return
+
+  const { level, bounds } = latestMapInfo.value
+  const sw = bounds.sw
+  const ne = bounds.ne
+
+  const params = {
+    level: level.toString(),
+    swLatLng: `${sw.lat},${sw.lng}`,
+    neLatLng: `${ne.lat},${ne.lng}`,
+    keyword: searchKeyword.value,
+    category: selectedCategory.value,
+  }
+
+  const response = await axios.get('/api/map', { params })
+  const attractions = response.data.data.attractions
+
+  // ✅ KakaoMap 내부 마커 렌더링 함수 호출
+  kakaoMapRef.value?.renderAttractions(attractions)
 }
 </script>
 
@@ -82,11 +108,18 @@ const handleMapInfo = (info) => {
     이로 인해 검색어나 카테고리 선택이 지도에 반영되지 않을 수 있습니다.
     컴포넌트 간 데이터 흐름을 설정하여 사용자 입력이 지도에 반영되도록 하세요.-->
     <KakaoMap
+      ref="kakaoMapRef"
       :searchKeyword="searchKeyword"
       :selectedCategory="selectedCategory"
-      @search-completed="handleSearchCompleted"
       @map-info-updated="handleMapInfo"
     />
+
+    <button
+      class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600 z-20"
+      @click="requestMarkers"
+    >
+      새로고침
+    </button>
   </div>
 </template>
 
