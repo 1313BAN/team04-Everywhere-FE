@@ -30,8 +30,19 @@ const props = defineProps({
 const emit = defineEmits(['search-completed', 'map-info-updated'])
 let sharedOverlay = null
 
+// 간단한 이스케이프 유틸
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 function wrapText(text, maxLength = 20) {
-  const words = text.split(' ')
+  // 잠재적 스크립트 삽입 방지를 위해 HTML 인코딩
+  const words = escapeHTML(text).split(' ')
   let result = ''
   let line = ''
   for (let word of words) {
@@ -75,7 +86,7 @@ const renderAttractions = (attractions) => {
       content.innerHTML = `
         <div class="info">
           <div class="title">
-            ${wrapText(item.title)}
+            ${wrapText(escapeHTML(item.title))}
             <div class="close" title="닫기"></div>
           </div>
           <div class="body">
@@ -83,7 +94,7 @@ const renderAttractions = (attractions) => {
               <img src="${item.firstImage || 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'}" width="73" height="70">
             </div>
             <div class="desc">
-              <div class="ellipsis">${wrapText(item.address)}</div>
+              <div class="ellipsis">${wrapText(escapeHTML(item.address))}</div>
               ${item.tel ? `<div class="jibun ellipsis">${item.tel}</div>` : ''}
             </div>
           </div>
@@ -102,6 +113,7 @@ const renderAttractions = (attractions) => {
       if (closeBtn) {
         closeBtn.addEventListener('click', () => {
           sharedOverlay.setMap(null)
+          sharedOverlay = null
         })
       }
     })
