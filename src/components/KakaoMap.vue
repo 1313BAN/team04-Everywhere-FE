@@ -62,10 +62,6 @@ const renderAttractions = (attractions) => {
     kakaoMarkers.value.push(marker)
     markerBounds.extend(position)
   })
-
-  if (attractions.length > 1) {
-    map.value.setBounds(markerBounds)
-  }
 }
 
 // 🌐 외부에서 renderAttractions 호출 가능하게 노출

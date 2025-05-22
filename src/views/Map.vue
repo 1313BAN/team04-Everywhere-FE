@@ -119,7 +119,7 @@ const requestMarkers = async () => {
       class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600 z-20"
       @click="requestMarkers"
     >
-      새로고침
+      현 지도에서 검색
     </button>
   </div>
 </template>
