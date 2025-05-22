@@ -61,8 +61,8 @@ const watchMapInfo = () => {
     center: { lat: center.getLat(), lng: center.getLng() },
     type: mapTypeId,
     bounds: {
-      sw: { lat: swLatLng.getLat(), lng: swLatLng.getLng() },
       ne: { lat: neLatLng.getLat(), lng: neLatLng.getLng() },
+      sw: { lat: swLatLng.getLat(), lng: swLatLng.getLng() },
     },
   })
 }
@@ -89,22 +89,25 @@ const fetchAndRenderAttractions = async () => {
 
   isLoading.value = true
   errorMessage.value = ''
+
+  // 지도 정보 추가
+  const level = map.value.getLevel()
+  const mapBounds = map.value.getBounds()
+  const swLatLng = mapBounds.getSouthWest()
+  const neLatLng = mapBounds.getNorthEast()
+
   try {
-    const params = {}
+    const params = {
+      level: level.toString(),
+      swLatLng: `${swLatLng.getLat()},${swLatLng.getLng()}`,
+      neLatLng: `${neLatLng.getLat()},${neLatLng.getLng()}`,
+    }
     if (props.searchKeyword) params.keyword = props.searchKeyword
     if (props.selectedCategory) params.category = props.selectedCategory
 
-    // 지도 정보 추가
-    const level = map.value.getLevel()
-    const mapBounds = map.value.getBounds()
-    const swLatLng = mapBounds.getSouthWest()
-    const neLatLng = mapBounds.getNorthEast()
-
-    params.level = level
-    params.swLat = swLatLng.getLat()
-    params.swLng = swLatLng.getLng()
-    params.neLat = neLatLng.getLat()
-    params.neLng = neLatLng.getLng()
+    // params.level = level
+    // params.swLatLng = `${swLatLng.getLat()},${swLatLng.getLng()}`
+    // params.neLatLng = `${neLatLng.getLat()},${neLatLng.getLng()}`
 
     const response = await axios.get('/api/map', { params })
     const attractions = response.data.data.attractions
