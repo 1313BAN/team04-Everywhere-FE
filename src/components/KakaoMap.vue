@@ -28,8 +28,33 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['search-completed', 'map-info-updated'])
+let sharedOverlay = null
 
-// 📌 마커 렌더링 함수 (외부에서 호출 가능)
+// 간단한 이스케이프 유틸
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+function wrapText(text, maxLength = 20) {
+  // 잠재적 스크립트 삽입 방지를 위해 HTML 인코딩
+  const words = escapeHTML(text).split(' ')
+  let result = ''
+  let line = ''
+  for (let word of words) {
+    if ((line + word).length > maxLength - 5) {
+      result += line.trim() + '<br>'
+      line = ''
+    }
+    line += word + ' '
+  }
+  return result + line.trim()
+}
+
 const renderAttractions = (attractions) => {
   if (!map.value) return
 
@@ -51,12 +76,46 @@ const renderAttractions = (attractions) => {
       image: markerImage,
     })
 
-    const infowindow = new window.kakao.maps.InfoWindow({
-      content: `<div style="padding:5px;font-size:13px;">${item.title}</div>`,
-    })
+    kakao.maps.event.addListener(marker, 'click', () => {
+      if (sharedOverlay) {
+        sharedOverlay.setMap(null)
+      }
 
-    window.kakao.maps.event.addListener(marker, 'click', () => {
-      infowindow.open(map.value, marker)
+      const content = document.createElement('div')
+      content.className = 'wrap'
+      content.innerHTML = `
+        <div class="info">
+          <div class="title">
+            ${wrapText(escapeHTML(item.title))}
+            <div class="close" title="닫기"></div>
+          </div>
+          <div class="body">
+            <div class="img">
+              <img src="${item.firstImage || 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'}" width="73" height="70">
+            </div>
+            <div class="desc">
+              <div class="ellipsis">${wrapText(escapeHTML(item.address))}</div>
+              ${item.tel ? `<div class="jibun ellipsis">${item.tel}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `
+
+      sharedOverlay = new kakao.maps.CustomOverlay({
+        content,
+        map: map.value,
+        position: marker.getPosition(),
+        xAnchor: 0.5,
+        yAnchor: 1.4,
+      })
+
+      const closeBtn = content.querySelector('.close')
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          sharedOverlay.setMap(null)
+          sharedOverlay = null
+        })
+      }
     })
 
     kakaoMarkers.value.push(marker)
@@ -64,10 +123,8 @@ const renderAttractions = (attractions) => {
   })
 }
 
-// 🌐 외부에서 renderAttractions 호출 가능하게 노출
 defineExpose({ renderAttractions })
 
-// 지도 상태 추적
 const watchMapInfo = () => {
   if (!map.value) return
 
@@ -89,7 +146,6 @@ const watchMapInfo = () => {
   })
 }
 
-// 카카오맵 스크립트 로드
 const loadKakaoMapsScript = () => {
   return new Promise((resolve) => {
     if (window.kakao && window.kakao.maps) {
@@ -105,7 +161,6 @@ const loadKakaoMapsScript = () => {
   })
 }
 
-// 초기 지도 불러오기
 onMounted(async () => {
   await loadKakaoMapsScript()
 
@@ -120,14 +175,10 @@ onMounted(async () => {
   })
 })
 
-// props 변경 시 기존 fetch 사용
 watch(
   () => [props.searchKeyword, props.selectedCategory],
   async () => {
     if (!isMapReady.value) return
-
-    // ✅ props 변화 시 기존 방식 유지 (원하면 제거 가능)
-    // fetchAndRenderAttractions()
   },
   { deep: true }
 )
@@ -137,7 +188,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style>
 .map-wrapper {
   width: 100%;
   height: 100vh;
@@ -174,5 +225,90 @@ onUnmounted(() => {
   color: #900;
   padding: 5px 10px;
   border-radius: 4px;
+}
+
+.wrap {
+  width: 288px;
+  height: 132px;
+  text-align: left;
+  overflow: hidden;
+  font-size: 12px;
+  font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;
+  line-height: 1.5;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1000;
+}
+.wrap * {
+  padding: 0;
+  margin: 0;
+}
+.wrap .info {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.info .title {
+  padding: 5px 10px;
+  height: 30px;
+  background: #eee;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.info .close {
+  width: 17px;
+  height: 17px;
+  background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/overlay_close.png');
+  background-size: cover;
+  cursor: pointer;
+}
+.info .body {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding: 10px;
+}
+.info .desc {
+  margin-left: 10px;
+  flex: 1;
+}
+.desc .ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desc .jibun {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+.info .img {
+  flex-shrink: 0;
+  width: 73px;
+  height: 71px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+}
+.info .img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.info:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  margin-left: -11px;
+  width: 22px;
+  height: 12px;
+  background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png');
 }
 </style>
