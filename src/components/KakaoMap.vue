@@ -205,6 +205,15 @@ watch(
   { deep: true }
 )
 
+watch(
+  () => props.selectedContentId,
+  (newContentId) => {
+    if (newContentId && isMapReady.value) {
+      focusMarker(newContentId)
+    }
+  }
+)
+
 onUnmounted(() => {
   kakaoMarkers.value.forEach((marker) => marker.setMap(null))
 })
@@ -264,11 +273,6 @@ onUnmounted(() => {
   position: relative;
   z-index: 1000;
 }
-.attraction-item.active {
-  background-color: #e6f2ff;
-  border-left: 4px solid #2196f3;
-}
-
 .wrap * {
   padding: 0;
   margin: 0;

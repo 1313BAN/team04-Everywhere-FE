@@ -314,6 +314,11 @@ const onAttractionClick = (attraction) => {
   border-bottom: 1px solid #eee;
 }
 
+.attraction-item.active {
+  background-color: #e6f2ff;
+  border-left: 4px solid #2196f3;
+}
+
 .attraction-item:last-child {
   border-bottom: none;
 }
