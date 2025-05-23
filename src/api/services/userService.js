@@ -16,13 +16,13 @@ export const userService = {
           Authorization: `Bearer ${userStore.token}`,
         },
       })
-    } catch (err) {
-      console.error('🔴 서버 로그아웃 실패:', err)
-      throw err
-    } finally {
+      // API 성공 시에만 토큰 제거
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       userStore.logout()
+    } catch (err) {
+      console.error('🔴 서버 로그아웃 실패:', err)
+      throw err
     }
   },
 }
