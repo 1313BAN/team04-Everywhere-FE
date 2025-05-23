@@ -72,7 +72,10 @@ const requestMarkers = async () => {
     console.error('마커 데이터 요청 실패:', err)
   }
 }
+const selectedContentId = ref(null)
+
 const onAttractionClick = (attraction) => {
+  selectedContentId.value = attraction.contentId
   kakaoMapRef.value?.focusMarker(attraction.contentId)
 }
 </script>
@@ -130,12 +133,19 @@ const onAttractionClick = (attraction) => {
         v-for="item in attractionList"
         :key="item.contentId"
         class="attraction-item"
+        :class="{ active: selectedContentId === item.contentId }"
+        @click="onAttractionClick(item)"
+      >
+        <!-- <div
+        v-for="item in attractionList"
+        :key="item.contentId"
+        class="attraction-item"
         @click="onAttractionClick(item)"
         tabindex="0"
         @keyup.enter="onAttractionClick(item)"
         role="button"
         :aria-label="`${item.title} 장소 선택`"
-      >
+      > -->
         <img
           :src="
             item.firstImage ||
