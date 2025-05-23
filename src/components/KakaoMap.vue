@@ -58,6 +58,11 @@ function wrapText(text, maxLength = 20) {
 const renderAttractions = (attractions) => {
   if (!map.value) return
 
+  if (sharedOverlay) {
+    sharedOverlay.setMap(null)
+    sharedOverlay = null
+  }
+
   kakaoMarkers.value.forEach((marker) => marker.setMap(null))
   kakaoMarkers.value = []
 
