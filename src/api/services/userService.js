@@ -1,14 +1,28 @@
+// src/api/services/userService.js
 import axios from '@/api/axios'
+import { useUserStore } from '@/stores/user'
 
 export const userService = {
-  // 사용자 정보 가져오기
-  getUserInfo() {
-    return axios.get('/user/info') // 이 URL은 실제 백엔드 API에 맞게 수정해야 함
+  async getUserInfo() {
+    return axios.get('/user/info') // 필요한 경우 실제 API로 수정
   },
 
-  // 로그아웃 처리 (단순 로컬스토리지 삭제)
-  logout() {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+  async logout() {
+    const userStore = useUserStore()
+
+    try {
+      await axios.post('/api/auth/logout', null, {
+        headers: {
+          Authorization: `Bearer ${userStore.token}`,
+        },
+      })
+      // API 성공 시에만 토큰 제거
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      userStore.logout()
+    } catch (err) {
+      console.error('🔴 서버 로그아웃 실패:', err)
+      throw err
+    }
   },
 }

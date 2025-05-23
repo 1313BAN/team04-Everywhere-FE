@@ -98,6 +98,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
+import { userService } from '@/api/services/userService'
 
 // prop으로 강제 라이트 모드 사용 여부 전달
 const props = defineProps({
@@ -137,8 +138,12 @@ const navigateWithAuth = (path) => {
   if (!isLoggedIn.value) router.push('/login')
   else router.push(path)
 }
-const handleLogout = () => {
-  userStore.logout()
-  router.push('/')
+const handleLogout = async () => {
+  try {
+    await userService.logout()
+    router.push('/login')
+  } catch {
+    alert('로그아웃 중 문제가 발생했습니다.')
+  }
 }
 </script>
