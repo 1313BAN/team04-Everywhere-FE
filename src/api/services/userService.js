@@ -3,7 +3,7 @@ import axios from '@/api/axios'
 import { useUserStore } from '@/stores/user'
 
 export const userService = {
-  async getUserInfo() {
+  getUserInfo() {
     return axios.get('/user/info') // 필요한 경우 실제 API로 수정
   },
 
@@ -13,12 +13,11 @@ export const userService = {
     try {
       await axios.post('/api/auth/logout', null, {
         headers: {
-          Authorization: `Bearer ${userStore.token}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       })
       // API 성공 시에만 토큰 제거
       localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
       userStore.logout()
     } catch (err) {
       console.error('🔴 서버 로그아웃 실패:', err)

@@ -15,6 +15,7 @@ export const useUserStore = defineStore('user', () => {
 
   const logout = () => {
     localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('nickname')
 
     isLoggedIn.value = false
