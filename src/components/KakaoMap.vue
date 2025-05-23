@@ -14,6 +14,9 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import axios from '@/api/axios'
 
+const markerMap = new Map() // contentId → marker 객체
+const attractionMap = new Map() // contentId → attraction 데이터
+
 const mapContainer = ref(null)
 const map = ref(null)
 const kakaoMarkers = ref([])
@@ -25,12 +28,12 @@ const isMapReady = ref(false)
 const props = defineProps({
   searchKeyword: { type: String, default: '' },
   selectedCategory: { type: String, default: null },
+  selectedContentId: { type: Number, default: null },
 })
 
 const emit = defineEmits(['search-completed', 'map-info-updated'])
 let sharedOverlay = null
 
-// 간단한 이스케이프 유틸
 function escapeHTML(str) {
   return str
     .replace(/&/g, '&amp;')
@@ -41,7 +44,6 @@ function escapeHTML(str) {
 }
 
 function wrapText(text, maxLength = 20) {
-  // 잠재적 스크립트 삽입 방지를 위해 HTML 인코딩
   const words = escapeHTML(text).split(' ')
   let result = ''
   let line = ''
@@ -55,11 +57,60 @@ function wrapText(text, maxLength = 20) {
   return result + line.trim()
 }
 
+const openOverlay = (marker, item) => {
+  if (sharedOverlay) sharedOverlay.setMap(null)
+
+  const content = document.createElement('div')
+  content.className = 'wrap'
+  content.innerHTML = `
+    <div class="info">
+      <div class="title">
+        ${wrapText(escapeHTML(item.title))}
+        <div class="close" title="닫기"></div>
+      </div>
+      <div class="body">
+        <div class="img">
+          <img src="${item.firstImage || 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'}" width="73" height="70">
+        </div>
+        <div class="desc">
+          <div class="ellipsis">${wrapText(escapeHTML(item.address))}</div>
+          ${item.tel ? `<div class="jibun ellipsis">${item.tel}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `
+
+  sharedOverlay = new kakao.maps.CustomOverlay({
+    content,
+    map: map.value,
+    position: marker.getPosition(),
+    xAnchor: 0.5,
+    yAnchor: 1.4,
+  })
+
+  const closeBtn = content.querySelector('.close')
+  if (closeBtn) {
+    const closeHandler = () => {
+      closeBtn.removeEventListener('click', closeHandler)
+      sharedOverlay.setMap(null)
+      sharedOverlay = null
+    }
+    closeBtn.addEventListener('click', closeHandler)
+  }
+}
+
 const renderAttractions = (attractions) => {
   if (!map.value) return
 
+  if (sharedOverlay) {
+    sharedOverlay.setMap(null)
+    sharedOverlay = null
+  }
+
   kakaoMarkers.value.forEach((marker) => marker.setMap(null))
   kakaoMarkers.value = []
+  markerMap.clear()
+  attractionMap.clear()
 
   const markerBounds = new window.kakao.maps.LatLngBounds()
   const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png'
@@ -77,57 +128,32 @@ const renderAttractions = (attractions) => {
     })
 
     kakao.maps.event.addListener(marker, 'click', () => {
-      if (sharedOverlay) {
-        sharedOverlay.setMap(null)
-      }
-
-      const content = document.createElement('div')
-      content.className = 'wrap'
-      content.innerHTML = `
-        <div class="info">
-          <div class="title">
-            ${wrapText(escapeHTML(item.title))}
-            <div class="close" title="닫기"></div>
-          </div>
-          <div class="body">
-            <div class="img">
-              <img src="${item.firstImage || 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'}" width="73" height="70">
-            </div>
-            <div class="desc">
-              <div class="ellipsis">${wrapText(escapeHTML(item.address))}</div>
-              ${item.tel ? `<div class="jibun ellipsis">${item.tel}</div>` : ''}
-            </div>
-          </div>
-        </div>
-      `
-
-      sharedOverlay = new kakao.maps.CustomOverlay({
-        content,
-        map: map.value,
-        position: marker.getPosition(),
-        xAnchor: 0.5,
-        yAnchor: 1.4,
-      })
-
-      const closeBtn = content.querySelector('.close')
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-          sharedOverlay.setMap(null)
-          sharedOverlay = null
-        })
-      }
+      openOverlay(marker, item)
     })
 
     kakaoMarkers.value.push(marker)
+    markerMap.set(item.contentId, marker)
+    attractionMap.set(item.contentId, item)
     markerBounds.extend(position)
   })
 }
 
-defineExpose({ renderAttractions })
+const focusMarker = (contentId) => {
+  if (!map.value || !markerMap.has(contentId)) return
+  kakaoMarkers.value.forEach((m) => m.setMap(null))
+  const marker = markerMap.get(contentId)
+  const item = attractionMap.get(contentId)
+  if (marker && item) {
+    marker.setMap(map.value)
+    map.value.setCenter(marker.getPosition())
+    openOverlay(marker, item)
+  }
+}
+
+defineExpose({ renderAttractions, focusMarker })
 
 const watchMapInfo = () => {
   if (!map.value) return
-
   const level = map.value.getLevel()
   const center = map.value.getCenter()
   const mapTypeId = map.value.getMapTypeId()
@@ -163,13 +189,11 @@ const loadKakaoMapsScript = () => {
 
 onMounted(async () => {
   await loadKakaoMapsScript()
-
   window.kakao.maps.load(() => {
     map.value = new window.kakao.maps.Map(mapContainer.value, {
       center: new window.kakao.maps.LatLng(37.5014, 127.0394),
       level: 11,
     })
-
     isMapReady.value = true
     window.kakao.maps.event.addListener(map.value, 'idle', watchMapInfo)
   })
@@ -181,6 +205,15 @@ watch(
     if (!isMapReady.value) return
   },
   { deep: true }
+)
+
+watch(
+  () => props.selectedContentId,
+  (newContentId) => {
+    if (newContentId && isMapReady.value) {
+      focusMarker(newContentId)
+    }
+  }
 )
 
 onUnmounted(() => {

@@ -42,6 +42,11 @@ const handleMapInfo = (info) => {
 }
 
 const kakaoMapRef = ref(null)
+const attractionList = ref([])
+
+const updateAttractions = (items) => {
+  attractionList.value = items
+}
 
 const requestMarkers = async () => {
   if (!latestMapInfo.value) return
@@ -62,9 +67,16 @@ const requestMarkers = async () => {
     const { data } = await axios.get('/api/map', { params })
     const attractions = data.data.attractions
     kakaoMapRef.value?.renderAttractions(attractions)
+    updateAttractions(attractions)
   } catch (err) {
     console.error('마커 데이터 요청 실패:', err)
   }
+}
+const selectedContentId = ref(null)
+
+const onAttractionClick = (attraction) => {
+  selectedContentId.value = attraction.contentId
+  kakaoMapRef.value?.focusMarker(attraction.contentId)
 }
 </script>
 
@@ -113,7 +125,41 @@ const requestMarkers = async () => {
       :searchKeyword="searchKeyword"
       :selectedCategory="selectedCategory"
       @map-info-updated="handleMapInfo"
+      @search-completed="updateAttractions"
     />
+
+    <div class="attraction-list">
+      <div
+        v-for="item in attractionList"
+        :key="item.contentId"
+        class="attraction-item"
+        :class="{ active: selectedContentId === item.contentId }"
+        @click="onAttractionClick(item)"
+      >
+        <!-- <div
+        v-for="item in attractionList"
+        :key="item.contentId"
+        class="attraction-item"
+        @click="onAttractionClick(item)"
+        tabindex="0"
+        @keyup.enter="onAttractionClick(item)"
+        role="button"
+        :aria-label="`${item.title} 장소 선택`"
+      > -->
+        <img
+          :src="
+            item.firstImage ||
+            'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'
+          "
+          class="attraction-thumbnail"
+        />
+        <div class="attraction-info">
+          <strong>{{ item.title }}</strong
+          ><br />
+          <small>{{ item.address }}</small>
+        </div>
+      </div>
+    </div>
 
     <button
       class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600 z-20"
@@ -232,5 +278,62 @@ const requestMarkers = async () => {
 .category-name {
   font-size: 12px;
   white-space: nowrap;
+}
+.attraction-list {
+  position: absolute;
+  top: 170px; /* 검색창 아래로 살짝 내림 */
+  left: 10px;
+  width: 400px;
+  max-height: 1000px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 11;
+}
+
+@media (max-width: 768px) {
+  .attraction-list {
+    width: calc(100vw - 20px);
+    max-width: 400px;
+  }
+
+  .search-box {
+    width: calc(100vw - 20px);
+    max-width: 400px;
+  }
+}
+
+.attraction-item {
+  display: flex;
+  align-items: center;
+  height: 120px;
+  padding: 10px;
+  padding-left: 20px;
+  gap: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.attraction-item.active {
+  background-color: #e6f2ff;
+  border-left: 4px solid #2196f3;
+}
+
+.attraction-item:last-child {
+  border-bottom: none;
+}
+
+.attraction-thumbnail {
+  width: 75px;
+  height: 75px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #ddd;
+}
+
+.attraction-info {
+  flex: 1;
+  font-size: 16px;
 }
 </style>
