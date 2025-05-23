@@ -1,6 +1,6 @@
 <template>
   <div class="travel-home font-sans text-gray-800 bg-white scroll-smooth">
-    <Header />
+    <Header :alwaysLight="false" />
     <!-- Hero -->
     <section
       class="min-h-screen flex flex-col justify-center items-center text-center px-4 bg-gradient-to-br from-blue-500 to-green-400 text-white pt-24"

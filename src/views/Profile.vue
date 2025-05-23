@@ -1,38 +1,117 @@
 <template>
-  <div class="profile-page">
-    <Header />
+  <div class="min-h-screen bg-gray-100 pt-16">
+    <Header :alwaysLight="true" />
 
-    <div class="profile-container">
-      <h2>내 프로필</h2>
-
-      <div v-if="loading" class="loading">사용자 정보를 불러오는 중...</div>
-
-      <div v-else-if="userInfo" class="user-info">
-        <div class="profile-section">
-          <h3>계정 정보</h3>
-          <div class="info-row">
-            <span class="label">아이디:</span>
-            <span class="value">{{ userInfo.userId }}</span>
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- 사이드바 -->
+        <aside class="w-full lg:w-1/4 bg-white rounded-lg shadow p-6 sticky top-24">
+          <div class="flex flex-col items-center pb-6 border-b border-gray-200 mb-6">
+            <div
+              class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-4xl text-indigo-500 overflow-hidden"
+            >
+              {{ userInfo.nickname?.charAt(0)?.toUpperCase() || '?' }}
+            </div>
+            <div class="mt-4 text-xl font-bold text-gray-800">{{ userInfo.nickname }}</div>
+            <div class="text-sm text-gray-500">{{ userInfo.userId }}</div>
           </div>
-          <div class="info-row">
-            <span class="label">닉네임:</span>
-            <span class="value">{{ userInfo.nickname }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">가입일:</span>
-            <span class="value">{{ formatDate(userInfo.createdAt) }}</span>
-          </div>
-        </div>
+          <ul class="space-y-4">
+            <li>
+              <router-link
+                to="/profile"
+                class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium"
+                active-class="text-indigo-600"
+              >
+                <span>👤</span><span>내 정보 관리</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link
+                to="/plans"
+                class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium"
+              >
+                <span>🏝️</span><span>내 여행 계획</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link
+                to="/favorites"
+                class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium"
+              >
+                <span>⭐</span><span>즐겨찾기 장소</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link
+                to="/profile/posts"
+                class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium"
+              >
+                <span>📝</span><span>작성한 게시글</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link
+                to="/profile/security"
+                class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium"
+              >
+                <span>🔐</span><span>보안 설정</span>
+              </router-link>
+            </li>
+          </ul>
+        </aside>
 
-        <div class="profile-actions">
-          <button class="primary-button" @click="editProfile">프로필 수정</button>
-          <button class="secondary-button" @click="handleLogout">로그아웃</button>
-        </div>
-      </div>
+        <!-- 메인 콘텐츠 -->
+        <main class="flex-1 space-y-6">
+          <!-- 내 정보 관리 섹션 -->
+          <section class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-2xl font-bold text-gray-800">내 정보 관리</h2>
+              <button @click="saveProfile" class="text-indigo-600 font-medium hover:underline">
+                변경사항 저장
+              </button>
+            </div>
+            <form class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-gray-700 font-medium mb-1">아이디</label>
+                  <input
+                    type="text"
+                    v-model="userInfo.userId"
+                    disabled
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700 font-medium mb-1">닉네임</label>
+                  <input
+                    type="text"
+                    v-model="userInfo.nickname"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+            </form>
+          </section>
 
-      <div v-else class="error-container">
-        <p>사용자 정보를 불러오는데 실패했습니다.</p>
-        <button class="primary-button" @click="loadUserInfo">다시 시도</button>
+          <!-- 작성한 게시글 섹션 -->
+          <section class="bg-white rounded-lg shadow p-6">
+            <div class="mb-4">
+              <h2 class="text-2xl font-bold text-gray-800">작성한 게시글</h2>
+            </div>
+            <ul class="space-y-3">
+              <li
+                v-for="post in userInfo.boards"
+                :key="post.id"
+                class="flex justify-between items-center"
+              >
+                <router-link :to="`/posts/${post.id}`" class="text-gray-700 hover:text-indigo-600">
+                  {{ post.title }}
+                </router-link>
+                <span class="text-sm text-gray-500">{{ formatDate(post.createdAt) }}</span>
+              </li>
+            </ul>
+          </section>
+        </main>
       </div>
     </div>
   </div>
@@ -41,156 +120,79 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
-import { userService } from '../api/services/userService'
+import Header from '@/components/Header.vue'
+import axios from '@/api/axios'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
-const userInfo = ref(null)
-const loading = ref(true)
+const userStore = useUserStore()
 
-// 날짜 포맷팅 함수
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('ko-KR', {
+const loading = ref(false)
+const userInfo = ref({ userId: '', nickname: '', boards: [] })
+
+// 날짜 포맷
+const formatDate = (iso) => {
+  const d = new Date(iso)
+  return d.toLocaleString('ko-KR', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(date)
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 const loadUserInfo = async () => {
   loading.value = true
   try {
-    const response = await userService.getUserInfo()
-    userInfo.value = response.data
+    const res = await axios.get('/api/user/me', {
+      headers: { Authorization: `Bearer ${userStore.token}` },
+    })
+    const d = res.data.data
+    userInfo.value = {
+      userId: d.userId,
+      nickname: d.nickname,
+      boards: d.boardList.boards,
+    }
   } catch (err) {
-    console.error('사용자 정보 로드 실패:', err)
-    // 추가: 401 또는 토큰 만료 시 로그인으로 이동
+    console.error('마이페이지 정보 로드 실패:', err)
     if (err.response?.status === 401) {
       alert('로그인이 만료되었습니다. 다시 로그인해주세요.')
       router.push('/login')
-    } else {
-      userInfo.value = null
     }
   } finally {
     loading.value = false
   }
 }
 
-// 프로필 수정 페이지로 이동
-const editProfile = () => {
-  // 프로필 수정 페이지로 이동하는 로직 (추후 구현)
-  console.log('프로필 수정 페이지로 이동')
+const saveProfile = async () => {
+  try {
+    const newNickname = userInfo.value.nickname.trim()
+    if (!newNickname) {
+      alert('닉네임을 입력해주세요.')
+      return
+    }
+
+    await axios.patch(
+      '/api/user/me/nickname',
+      { nickname: newNickname },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.token}`,
+        },
+      }
+    )
+    userStore.nickname = userInfo.value.nickname
+    alert('닉네임이 성공적으로 변경되었습니다.')
+  } catch (err) {
+    console.error('닉네임 변경 실패:', err)
+    alert('닉네임 변경 중 오류가 발생했습니다.')
+  }
 }
 
-// 로그아웃 처리
-const handleLogout = () => {
-  userService.logout()
-  router.push('/')
-}
-
-// 컴포넌트 마운트 시 사용자 정보 로드
-onMounted(() => {
-  loadUserInfo()
-})
+const onMountedLoad = onMounted(loadUserInfo)
 </script>
 
 <style scoped>
-.profile-page {
-  min-height: 100vh;
-  background-color: var(--light-gray);
-}
-
-.profile-container {
-  max-width: 700px;
-  margin: 50px auto;
-  padding: 30px;
-  background-color: var(--white);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--primary-color);
-}
-
-h3 {
-  color: var(--primary-color);
-  margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: var(--dark-gray);
-}
-
-.profile-section {
-  margin-bottom: 30px;
-}
-
-.info-row {
-  display: flex;
-  margin-bottom: 15px;
-}
-
-.label {
-  width: 100px;
-  font-weight: 500;
-  color: var(--dark-gray);
-}
-
-.value {
-  flex: 1;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 30px;
-}
-
-.primary-button,
-.secondary-button {
-  padding: 10px 20px;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-md);
-  cursor: pointer;
-  border: none;
-}
-
-.primary-button {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.secondary-button {
-  background-color: #f5f5f5;
-  color: var(--text-color);
-  border: 1px solid #ddd;
-}
-
-.primary-button:hover {
-  background-color: #0062a3;
-}
-
-.secondary-button:hover {
-  background-color: #e8e8e8;
-}
-
-.error-container {
-  text-align: center;
-  padding: 20px;
-}
-
-.error-container p {
-  color: #e53935;
-  margin-bottom: 15px;
-}
+/* 필요한 스타일만 유지 */
 </style>
