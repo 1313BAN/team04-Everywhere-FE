@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-100 pt-16">
-    <Header theme="light" />
+    <Header :alwaysLight="true" />
 
     <div class="container mx-auto px-4 py-8">
       <div class="flex flex-col lg:flex-row gap-6">
@@ -10,7 +10,7 @@
             <div
               class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-4xl text-indigo-500 overflow-hidden"
             >
-              {{ userInfo.nickname?.charAt(0).toUpperCase() }}
+              {{ userInfo.nickname?.charAt(0)?.toUpperCase() || '?' }}
             </div>
             <div class="mt-4 text-xl font-bold text-gray-800">{{ userInfo.nickname }}</div>
             <div class="text-sm text-gray-500">{{ userInfo.userId }}</div>
@@ -194,81 +194,5 @@ const onMountedLoad = onMounted(loadUserInfo)
 </script>
 
 <style scoped>
-.profile-page {
-  min-height: 100vh;
-  background: #f5f5f5;
-}
-.profile-container {
-  max-width: 700px;
-  margin: 80px auto 40px;
-  padding: 30px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-.loading,
-.error-container {
-  text-align: center;
-  padding: 20px;
-}
-.profile-section,
-.post-section {
-  margin-bottom: 30px;
-}
-.info-row {
-  display: flex;
-  margin-bottom: 10px;
-}
-.label {
-  width: 80px;
-  font-weight: 500;
-  color: #555;
-}
-.value {
-  flex: 1;
-  color: #222;
-}
-.post-item {
-  margin-bottom: 8px;
-}
-.post-item small {
-  margin-left: 8px;
-  color: #888;
-  font-size: 0.9em;
-}
-.profile-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-.primary-button,
-.secondary-button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: none;
-}
-.primary-button {
-  background: #2196f3;
-  color: #fff;
-}
-.secondary-button {
-  background: #eee;
-  color: #333;
-}
-.primary-button:hover {
-  background: #1976d2;
-}
-.secondary-button:hover {
-  background: #ddd;
-}
-.error-container p {
-  color: #e53935;
-  margin-bottom: 12px;
-}
+/* 필요한 스타일만 유지 */
 </style>
