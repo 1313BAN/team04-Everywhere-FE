@@ -90,10 +90,12 @@ const openOverlay = (marker, item) => {
 
   const closeBtn = content.querySelector('.close')
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
+    const closeHandler = () => {
+      closeBtn.removeEventListener('click', closeHandler)
       sharedOverlay.setMap(null)
       sharedOverlay = null
-    })
+    }
+    closeBtn.addEventListener('click', closeHandler)
   }
 }
 
