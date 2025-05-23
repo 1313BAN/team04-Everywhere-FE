@@ -153,13 +153,17 @@ const focusMarker = (contentId) => {
 defineExpose({ renderAttractions, focusMarker })
 
 const watchMapInfo = () => {
-  if (!map.value) return
+  if (!map.value || !window.kakao) return
+
+  const bounds = map.value.getBounds()
+  if (!bounds) return
+
   const level = map.value.getLevel()
   const center = map.value.getCenter()
   const mapTypeId = map.value.getMapTypeId()
-  const mapBounds = map.value.getBounds()
-  const swLatLng = mapBounds.getSouthWest()
-  const neLatLng = mapBounds.getNorthEast()
+
+  const swLatLng = bounds.getSouthWest()
+  const neLatLng = bounds.getNorthEast()
 
   emit('map-info-updated', {
     level,
@@ -187,22 +191,34 @@ const loadKakaoMapsScript = () => {
   })
 }
 
+let idleListener = null
+
 onMounted(async () => {
-  await loadKakaoMapsScript()
-  window.kakao.maps.load(() => {
-    map.value = new window.kakao.maps.Map(mapContainer.value, {
-      center: new window.kakao.maps.LatLng(37.5014, 127.0394),
-      level: 11,
+  try {
+    await loadKakaoMapsScript()
+    window.kakao.maps.load(() => {
+      map.value = new window.kakao.maps.Map(mapContainer.value, {
+        center: new window.kakao.maps.LatLng(37.5014, 127.0394),
+        level: 11,
+      })
+      isMapReady.value = true
+      idleListener = window.kakao.maps.event.addListener(map.value, 'idle', () => {
+        if (map.value && map.value.getBounds) {
+          watchMapInfo()
+        }
+      })
     })
-    isMapReady.value = true
-    window.kakao.maps.event.addListener(map.value, 'idle', watchMapInfo)
-  })
+  } catch (e) {
+    errorMessage.value = '지도를 불러오지 못했습니다.'
+    console.error('❌ 지도 로딩 실패:', e)
+  }
 })
 
 watch(
   () => [props.searchKeyword, props.selectedCategory],
   async () => {
-    if (!isMapReady.value) return
+    if (!isMapReady.value || !map.value || !map.value.getBounds) return
+    watchMapInfo()
   },
   { deep: true }
 )
@@ -218,6 +234,9 @@ watch(
 
 onUnmounted(() => {
   kakaoMarkers.value.forEach((marker) => marker.setMap(null))
+  if (map.value && idleListener) {
+    window.kakao.maps.event.removeListener(map.value, 'idle', idleListener)
+  }
 })
 </script>
 
