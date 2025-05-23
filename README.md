@@ -16,42 +16,45 @@
 travel-app/
 ├── src/
 │   ├── api/
-│   │   ├── axios.js                   # Axios 기본 설정 및 인터셉터
-│   │   ├── index.js                   # API 서비스 종합 내보내기
-│   │   └── userAuthService.js         # 사용자 인증 관련 API
-│   │   └── userProfileService.js      # 사용자 프로필 관련 API
-│   │   └── userService.js             # 사용자 기타 API
+│   │   ├── axios.js                   # Axios 공통 설정 및 인터셉터
+│   │   ├── index.js                   # 모든 API 서비스의 통합 export
+│   │   ├── userAuthService.js         # 로그인, 로그아웃, 인증 관련 API
+│   │   ├── userProfileService.js      # 사용자 프로필 관련 API
+│   │   └── userService.js             # 기타 사용자 관련 API
 │   ├── assets/
-│   │   └── vue.svg                    # 프로젝트 로고 또는 뱃지
+│   │   └── vue.svg                    # 프로젝트 로고 또는 아이콘 리소스
 │   ├── components/
-│   │   ├── Button/
-│   │   │   ├── Button.vue             # 공통 버튼 컴포넌트
-│   │   │   └── Button.css             # 버튼 전용 스타일
-│   │   ├── Header.vue                 # 상단 네비게이션 바
-│   │   ├── RecommendedDestination.vue # 추천 여행지 카드
-│   │   └── TravelOption.vue           # 여행 테마/옵션 선택 컴포넌트
+│   │   ├── Header.vue                 # 상단 네비게이션 컴포넌트
+│   │   ├── KakaoMap.vue              # 카카오 지도 컴포넌트
+│   │   ├── RecommendedDestination.vue # 추천 여행지 카드 리스트
+│   │   ├── SearchBox.vue             # 검색 입력창 UI
+│   │   ├── SearchResults.vue         # 검색 결과 목록
+│   │   └── TravelOption.vue          # 여행 테마/옵션 선택 컴포넌트
 │   ├── router/
-│   │   └── router.js                  # 라우터 설정
+│   │   └── router.js                  # Vue Router 설정
 │   ├── stores/
-│   │   ├── auth.js                    # 인증 상태 관리
-│   │   └── user.js                    # 사용자 상태 관리 (Pinia)
+│   │   ├── auth.js                    # 인증 관련 상태 (예: 토큰)
+│   │   └── user.js                    # 사용자 정보 관련 상태
 │   ├── views/
-│   │   ├── ImproveSignup.vue          # 회원가입 개선 화면
-│   │   ├── Login.vue                  # 로그인 폼
-│   │   ├── Profile.vue                # 마이페이지
-│   │   ├── Signup.vue                 # 회원가입 폼
-│   │   └── TravelHome.vue             # 추천 + 메인 홈 페이지
-│   ├── App.vue                        # 루트 컴포넌트
-│   ├── index.css                      # 전역 스타일 (기존 스타일 통합)
-│   └── main.js                        # 앱 진입점, 라우터 및 Pinia 등록
-├── index.html                         # HTML 템플릿
+│   │   ├── ImproveSignup.vue          # 개선된 회원가입 페이지
+│   │   ├── Login.vue                  # 로그인 페이지
+│   │   ├── Map.vue                    # 지도 중심 페이지 (기본 지도)
+│   │   ├── Profile.vue                # 사용자 프로필 (마이페이지)
+│   │   ├── TravelHome.vue             # 여행 추천 홈 화면
+│   │   └── UpdatedMap.vue             # 업데이트된 지도 페이지 (지도 기능 강화판)
+│   ├── App.vue                        # 애플리케이션 루트 컴포넌트
+│   ├── index.css                      # 전체 프로젝트에 적용되는 전역 CSS
+│   └── main.js                        # 앱 초기화, 라우터/스토어 마운트
+├── index.html                         # Vite HTML 템플릿 엔트리 포인트
 ├── vite.config.js                     # Vite 설정 파일
-├── package.json                       # 의존성 및 스크립트 정의
-├── package-lock.json                  # lock 파일
-├── README.md                          # 프로젝트 설명
-├── .gitignore                         # Git 무시 파일
-├── .prettierrc                        # Prettier 설정
-└── eslint.config.js                   # ESLint 설정
+├── tailwind.config.js                 # Tailwind CSS 설정
+├── postcss.config.js                  # PostCSS 설정
+├── package.json                       # 프로젝트 의존성과 스크립트
+├── package-lock.json                  # 의존성 고정 버전
+├── .gitignore                         # Git에서 무시할 파일 목록
+├── .prettierrc                        # 코드 스타일 설정 (Prettier)
+├── eslint.config.js                   # 코드 린팅 설정 (ESLint)
+└── README.md                          # 프로젝트 소개 및 설명
 ```
 
 ## 주요 기능
