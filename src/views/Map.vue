@@ -37,10 +37,10 @@ const selectCategory = (category) => {
 }
 
 const handleMapInfo = (info) => {
+  if (!info || !info.bounds || !info.bounds.sw || !info.bounds.ne) return
   latestMapInfo.value = info
   console.log('📍 지도 정보 저장됨:', info)
 }
-
 const kakaoMapRef = ref(null)
 const attractionList = ref([])
 
