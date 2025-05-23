@@ -72,6 +72,9 @@ const requestMarkers = async () => {
     console.error('마커 데이터 요청 실패:', err)
   }
 }
+const onAttractionClick = (attraction) => {
+  kakaoMapRef.value?.focusMarker(attraction.contentId)
+}
 </script>
 
 <template>
@@ -123,7 +126,16 @@ const requestMarkers = async () => {
     />
 
     <div class="attraction-list">
-      <div v-for="item in attractionList" :key="item.contentId" class="attraction-item">
+      <div
+        v-for="item in attractionList"
+        :key="item.contentId"
+        class="attraction-item"
+        @click="onAttractionClick(item)"
+        tabindex="0"
+        @keyup.enter="onAttractionClick(item)"
+        role="button"
+        :aria-label="`${item.title} 장소 선택`"
+      >
         <img
           :src="
             item.firstImage ||
@@ -268,6 +280,18 @@ const requestMarkers = async () => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 11;
+}
+
+@media (max-width: 768px) {
+  .attraction-list {
+    width: calc(100vw - 20px);
+    max-width: 400px;
+  }
+
+  .search-box {
+    width: calc(100vw - 20px);
+    max-width: 400px;
+  }
 }
 
 .attraction-item {
