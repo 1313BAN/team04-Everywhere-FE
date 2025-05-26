@@ -5,10 +5,20 @@
     <section
       class="min-h-screen flex flex-col justify-center items-center text-center px-4 bg-gradient-to-br from-blue-500 to-green-400 text-white pt-24"
     >
-      <h1 class="text-3xl md:text-4xl font-bold mb-4">여기저기 여행의 모든 것</h1>
-      <p class="text-base md:text-lg mb-6">
-        지도 기반 여행 계획부터 AI 추천까지, 여행의 시작과 끝을 함께합니다
-      </p>
+      <h1 class="text-3xl md:text-4xl font-bold mb-4 font-doHyeon">
+        여기<span class="text-yellow-400">저기</span> 여행의 모든 것
+      </h1>
+      <div class="h-6 md:h-8 mb-6">
+        <TypewriterText
+          :texts="typewriterTexts"
+          :typing-speed="100"
+          :deleting-speed="50"
+          :pause-duration="2000"
+          text-class="text-base md:text-lg text-white/90"
+          icon-class="pi pi-map-marker mr-2 text-yellow-300"
+          :show-icon="true"
+        />
+      </div>
       <div class="w-full max-w-md flex flex-col gap-3">
         <div class="relative">
           <input
@@ -20,7 +30,7 @@
         </div>
         <button
           @click="goLogin"
-          class="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-6 py-3 rounded-md"
+          class="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-6 py-3 rounded-md shadow-md"
         >
           여행 시작하기
         </button>
@@ -190,10 +200,19 @@
 <script setup>
 import Header from '../components/Header.vue'
 import { useRouter } from 'vue-router'
+import TypewriterText from '../components/TypewriterText.vue'
 
 const router = useRouter()
 
 const goLogin = () => {
   router.push('/login')
 }
+// 여기에서 문구들을 정의하세요.
+const typewriterTexts = [
+  '🗺️ 지도 기반 여행 계획부터 AI 추천까지',
+  '🧳 혼자서도, 함께여도 즐거운 여행',
+  '🎯 당신만을 위한 맞춤 여행 일정',
+  '🚀 여행의 시작과 끝을 여기저기에서',
+  '🍽️ 한 눈에 보는 맛집, 숙소, 관광지',
+]
 </script>

@@ -6,6 +6,13 @@ const searchKeyword = ref('')
 const selectedCategory = ref(null)
 const latestMapInfo = ref(null) // watchMapInfo에서 전달된 최신 정보 저장
 
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const goBack = () => {
+  router.push('/') // TravelHome으로 이동
+}
+
 const categories = reactive([
   { id: 'A01', name: '자연', icon: '🌳' },
   { id: 'A02', name: '문화', icon: '🏯' },
@@ -16,10 +23,39 @@ const categories = reactive([
   { id: 'C01', name: '추천코스', icon: '💯' },
 ])
 
-const searchPlaces = () => {
-  if (!searchKeyword.value.trim()) return
-  // 검색 이벤트 발생 또는 상태 업데이트
-  // 필요한 경우 이벤트 발생하여 KakaoMap 컴포넌트에 알림
+const searchPlaces = async () => {
+  if (!selectedCategory.value || !latestMapInfo.value) return
+
+  const { level, bounds } = latestMapInfo.value
+  const sw = bounds.sw
+  const ne = bounds.ne
+
+  try {
+    // 선택된 카테고리로 서버 요청
+    const { data } = await axios.get(`/api/map/category/${selectedCategory.value}`)
+    const attractions = data.data.attractions
+
+    // 현 지도 범위 안에 있는 항목만 필터링
+    const filtered = attractions.filter((item) => {
+      const lat = item.latitude
+      const lng = item.longitude
+      return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng
+    })
+
+    // 지도 레벨 필터 (레벨 12 이상은 너무 멀어서 제외)
+    if (level > 12) {
+      console.log(`🔕 레벨 ${level} → 너무 멀어 마커 생략됨`)
+      updateAttractions([])
+      kakaoMapRef.value?.renderAttractions([])
+      return
+    }
+
+    // 지도 & 리스트 업데이트
+    updateAttractions(filtered)
+    kakaoMapRef.value?.renderAttractions(filtered)
+  } catch (err) {
+    console.error('카테고리별 마커 요청 실패:', err)
+  }
 }
 
 const clearSearch = () => {
@@ -85,6 +121,10 @@ const onAttractionClick = (attraction) => {
     <!-- Search UI -->
     <div class="search-box">
       <div class="search-input-container">
+        <!-- 👈 뒤로가기 버튼 -->
+        <button class="back-button" @click="goBack" aria-label="뒤로가기">👈</button>
+
+        <!-- 검색창 -->
         <input
           v-model="searchKeyword"
           type="text"
@@ -212,7 +252,7 @@ const onAttractionClick = (attraction) => {
   height: 40px;
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: 15px;
   padding: 0 10px;
 }
 
@@ -271,7 +311,7 @@ const onAttractionClick = (attraction) => {
 }
 
 .category-icon {
-  font-size: 22px;
+  font-size: 23px;
   margin-bottom: 5px;
 }
 
@@ -329,11 +369,30 @@ const onAttractionClick = (attraction) => {
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
+  font-size: 18px;
   border: 1px solid #ddd;
 }
 
 .attraction-info {
   flex: 1;
   font-size: 16px;
+}
+.back-button {
+  margin-right: 10px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  border-radius: 50%;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
 }
 </style>
