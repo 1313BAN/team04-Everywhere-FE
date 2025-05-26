@@ -47,9 +47,11 @@
 
 <script setup lang="js">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/api/axios'
 import Header from '@/components/Header.vue'
 
+const router = useRouter()
 const title = ref('')
 const content = ref('')
 const files = ref([])
@@ -74,11 +76,12 @@ async function submitForm() {
     const res = await axios.post('/api/board', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
     })
-    console.log('✅ 등록 성공:', res.data)
+    alert('게시글이 등록되었습니다!')
+    router.push(`/board/${res.data.data.id}`)
   } catch (err) {
-    console.error('❌ 등록 실패:', err)
     alert('등록에 실패했습니다. 다시 시도해주세요.')
   }
 }

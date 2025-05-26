@@ -77,7 +77,11 @@ const goToEdit = () => {
 const deletePost = async () => {
   if (confirm('정말 삭제하시겠습니까? 삭제한 게시글은 복구할 수 없습니다.')) {
     try {
-      await axios.delete(`/api/board/${board.value.id}`)
+      await axios.delete(`/api/board/${board.value.id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      })
       alert('삭제되었습니다.')
       router.push('/board')
     } catch (err) {

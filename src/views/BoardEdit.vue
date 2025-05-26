@@ -43,12 +43,17 @@ const content = ref('')
 
 const fetchPost = async () => {
   try {
-    const res = await axios.get(`/api/board/${route.params.id}`)
+    const res = await axios.get(`/api/board/${route.params.id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
     const post = res.data.data
     title.value = post.title
     content.value = post.content
   } catch (err) {
     alert('게시글 불러오기 실패')
+    router.push('/board')
   }
 }
 

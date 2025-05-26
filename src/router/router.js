@@ -38,15 +38,15 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/board/:id',
-    name: 'BoardDetail',
-    component: () => import('@/views/BoardDetail.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
     path: '/board/edit/:id',
     name: 'BoardEdit',
     component: () => import('@/views/BoardEdit.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/board/:id',
+    name: 'BoardDetail',
+    component: () => import('@/views/BoardDetail.vue'),
     meta: { requiresAuth: true },
   },
   // 페이지를 찾지 못할 경우 홈으로 리다이렉트 (마지막에 위치)

@@ -22,6 +22,11 @@
 
       <!-- 게시글 목록 -->
       <div v-if="isLoading" class="text-center py-10">로딩 중...</div>
+
+      <div v-else-if="errorMessage" class="text-center py-10 text-red-500">
+        {{ errorMessage }}
+      </div>
+
       <div v-else class="post-list">
         <div
           v-for="post in boards"
@@ -35,14 +40,14 @@
                 {{ mapCategoryName(post.category) }}
               </span>
               <div class="post-actions">
-                <button class="like-btn">❤️</button>
+                <button class="like-btn" @click.stop="handleLike(post.id)">❤️</button>
               </div>
             </div>
             <h2 class="post-title truncate">{{ post.title }}</h2>
             <p class="post-excerpt">{{ post.summary || '내용이 없습니다.' }}</p>
             <div class="post-meta">
               <div class="post-author">
-                <div class="author-avatar">{{ post.writer.charAt(0) }}</div>
+                <div class="author-avatar">{{ post.writer.slice(0, 1).toUpperCase() }}</div>
                 <div class="author-info">
                   <div class="author-name">{{ post.writer }}</div>
                   <div class="post-date">{{ formatDate(post.createdAt) }}</div>
@@ -84,6 +89,7 @@ import { ref, onMounted } from 'vue'
 import axios from '@/api/axios'
 import { useRouter } from 'vue-router'
 
+// 상태 정의
 const router = useRouter()
 const boards = ref([])
 const page = ref(0)
@@ -91,6 +97,7 @@ const size = 10
 const hasNextPage = ref(false)
 const isLoading = ref(false)
 const selectedCategory = ref('all')
+const errorMessage = ref('') // ✅ 에러 메시지 상태 추가
 
 const categories = [
   { id: 'all', name: '전체' },
@@ -100,11 +107,13 @@ const categories = [
   { id: 'mate', name: '동행구함' },
 ]
 
+// 카테고리 이름 매핑
 const mapCategoryName = (id) => {
   const found = categories.find((c) => c.id === id)
   return found ? found.name : '기타'
 }
 
+// 카테고리 색상 클래스 매핑
 const mapCategoryColor = (id) => {
   switch (id) {
     case 'review':
@@ -120,27 +129,32 @@ const mapCategoryColor = (id) => {
   }
 }
 
+// 게시글 가져오기
 const fetchBoards = async () => {
   isLoading.value = true
+  errorMessage.value = '' // 에러 초기화
+
   try {
     let query = `/api/board?page=${page.value}&size=${size}&sort=createdAt,desc`
-    // 왜 최신 글이 맨 위가 아닐까? - 이것도 서버측 문제 가능성
     if (selectedCategory.value !== 'all') {
       query += `&category=${selectedCategory.value}`
     }
-    const response = await axios.get(query)
-    boards.value = response.data.data.boards.sort((a, b) => {
-      return new Date(b.createdAt) - new Date(a.createdAt)
-    })
 
-    hasNextPage.value = boards.value.length === size
+    const response = await axios.get(query)
+    const data = response.data.data
+
+    boards.value = data.boards
+    hasNextPage.value = page.value < data.totalPages - 1 // ✅ 정확한 계산 방식
   } catch (err) {
-    alert('게시글을 불러오는 중 문제가 발생했습니다.')
+    // 토스트 없으면 주석처리하거나 아래처럼 에러 메시지만 출력
+    // toast.error('게시글을 불러오는 중 문제가 발생했습니다.')
+    errorMessage.value = '게시글을 불러오는 중 문제가 발생했습니다.'
   } finally {
     isLoading.value = false
   }
 }
 
+// 페이지 변경
 const changePage = (newPage) => {
   if (newPage >= 0) {
     page.value = newPage
@@ -148,19 +162,24 @@ const changePage = (newPage) => {
   }
 }
 
+// 카테고리 선택
 const selectCategory = (cat) => {
   selectedCategory.value = cat
   page.value = 0
   fetchBoards()
 }
 
+// 게시글 상세 보기
 const goToPostDetail = (id) => {
   router.push(`/board/${id}`)
 }
+
+// 글쓰기 이동
 const goWrite = () => {
   router.push('/board/write')
 }
 
+// 날짜 포맷
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return date.toLocaleString('ko-KR', {
