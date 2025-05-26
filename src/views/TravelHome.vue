@@ -11,9 +11,7 @@
       <div class="h-6 md:h-8 mb-6">
         <TypewriterText
           :texts="typewriterTexts"
-          :typing-speed="100"
-          :deleting-speed="50"
-          :pause-duration="2000"
+          :change-interval="3000"
           text-class="text-base md:text-lg text-white/90"
           icon-class="pi pi-map-marker mr-2 text-yellow-300"
           :show-icon="true"
