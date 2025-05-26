@@ -7,9 +7,6 @@ dist-ssr/
 # 환경 설정
 .env
 .env.*
-postcss.config.js
-tailwind.config.js
-index.html  
 
 # IDE
 .vscode/*
