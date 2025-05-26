@@ -28,11 +28,7 @@ class UserAuthService {
    */
   async login(credentials) {
     try {
-
-const response = await instance.post('/auth/login', credentials)
-        credentials,
-        { withCredentials: true } // 이거 꼭 추가
-      )
+      const response = await axios.post('/api/auth/login', credentials)
 
       const { accessToken = '', refreshToken = '', nickname = '' } = response.data || {}
 
