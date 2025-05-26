@@ -143,8 +143,13 @@ const fetchBoards = async () => {
     const response = await axios.get(query)
     const data = response.data.data
 
+    // 응답 데이터 검증
+    if (!data || !Array.isArray(data.boards)) {
+      throw new Error('잘못된 응답 형식')
+    }
+
     boards.value = data.boards
-    hasNextPage.value = page.value < data.totalPages - 1 // ✅ 정확한 계산 방식
+    hasNextPage.value = data.totalPages ? page.value < data.totalPages - 1 : false
   } catch (err) {
     // 토스트 없으면 주석처리하거나 아래처럼 에러 메시지만 출력
     // toast.error('게시글을 불러오는 중 문제가 발생했습니다.')
