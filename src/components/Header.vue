@@ -5,7 +5,7 @@
       effectiveLight ? 'bg-white shadow' : 'bg-transparent',
     ]"
   >
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center font-doHyeon">
       <!-- 로고 -->
       <div
         @click="goHome"

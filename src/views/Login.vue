@@ -3,7 +3,7 @@
     class="auth-page min-h-screen bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center py-10"
   >
     <div class="absolute top-5 left-5 text-white font-semibold">
-      <router-link to="/"> ← 메인으로 돌아가기 </router-link>
+      <router-link to="/"> 👈 메인으로 돌아가기 </router-link>
     </div>
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">

@@ -64,8 +64,14 @@ const openOverlay = (marker, item) => {
   content.className = 'wrap'
   content.innerHTML = `
     <div class="info">
-      <div class="title">
-        ${wrapText(escapeHTML(item.title))}
+      <div class="title" style="
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1.4;
+        white-space: normal;
+        word-break: keep-all;
+      ">
+        ${escapeHTML(item.title)}
         <div class="close" title="닫기"></div>
       </div>
       <div class="body">
@@ -112,11 +118,28 @@ const renderAttractions = (attractions) => {
   markerMap.clear()
   attractionMap.clear()
 
+  // 현재 지도 레벨 가져오기
+  const currentLevel = map.value.getLevel()
+  const maxVisibleLevel = 12 // 너무 멀리 있으면 마커 안 보이게
+
+  if (currentLevel > maxVisibleLevel) {
+    console.log(`🔕 현재 레벨 ${currentLevel} → 너무 멀어서 마커 생략됨`)
+    emit('search-completed', []) // 리스트도 비움
+    return
+  }
+
   const markerBounds = new window.kakao.maps.LatLngBounds()
   const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png'
   const imageSize = new window.kakao.maps.Size(24, 35)
 
-  attractions.forEach((item) => {
+  const filteredAttractions = attractions.filter((item) => {
+    const categoryCode = item.category
+    if (categoryCode === 'C01') return false
+    if (!props.selectedCategory) return true
+    return categoryCode === props.selectedCategory
+  })
+
+  filteredAttractions.forEach((item) => {
     const position = new window.kakao.maps.LatLng(item.latitude, item.longitude)
     const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize)
 
@@ -136,6 +159,8 @@ const renderAttractions = (attractions) => {
     attractionMap.set(item.contentId, item)
     markerBounds.extend(position)
   })
+
+  emit('search-completed', filteredAttractions)
 }
 
 const focusMarker = (contentId) => {
@@ -183,6 +208,7 @@ const loadKakaoMapsScript = () => {
     } else {
       const script = document.createElement('script')
       script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&libraries=services,clusterer,drawing&autoload=false`
+
       script.onload = () => {
         window.kakao.maps.load(() => resolve())
       }
