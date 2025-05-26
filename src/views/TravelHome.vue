@@ -203,7 +203,12 @@ import TypewriterText from '../components/TypewriterText.vue'
 const router = useRouter()
 
 const goLogin = () => {
-  router.push('/login')
+  const token = localStorage.getItem('accessToken')
+  if (token) {
+    router.push('/plans')
+  } else {
+    router.push('/login')
+  }
 }
 // 여기에서 문구들을 정의하세요.
 const typewriterTexts = [
