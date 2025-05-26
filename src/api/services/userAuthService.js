@@ -29,12 +29,13 @@ class UserAuthService {
   async login(credentials) {
     try {
       const response = await axios.post('/api/auth/login', credentials)
+
       const { accessToken = '', refreshToken = '', nickname = '' } = response.data || {}
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken)
         localStorage.setItem('refreshToken', refreshToken)
-        localStorage.setItem('nickname', nickname) // ← 닉네임도 저장
+        localStorage.setItem('nickname', nickname)
       }
 
       return response.data
