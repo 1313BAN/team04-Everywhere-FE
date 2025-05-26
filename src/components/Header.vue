@@ -28,7 +28,7 @@
           >지도보기</span
         >
         <span
-          @click="navigateWithAuth('/posts')"
+          @click="navigateWithAuth('/board')"
           :class="[
             effectiveLight ? 'text-gray-800 hover:text-indigo-600' : 'text-white hover:underline',
             'cursor-pointer',

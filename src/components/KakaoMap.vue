@@ -11,19 +11,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import axios from '@/api/axios'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
-const markerMap = new Map() // contentId → marker 객체
-const attractionMap = new Map() // contentId → attraction 데이터
-
+// 상태 관리
 const mapContainer = ref(null)
 const map = ref(null)
-const kakaoMarkers = ref([])
-
 const isLoading = ref(false)
 const errorMessage = ref('')
 const isMapReady = ref(false)
+
+// 마커 관리
+const currentMarkers = ref([])
+const markerMap = new Map() // contentId → marker 객체
+const attractionMap = new Map() // contentId → attraction 데이터
+let sharedOverlay = null
 
 const props = defineProps({
   searchKeyword: { type: String, default: '' },
@@ -31,10 +32,11 @@ const props = defineProps({
   selectedContentId: { type: Number, default: null },
 })
 
-const emit = defineEmits(['search-completed', 'map-info-updated'])
-let sharedOverlay = null
+const emit = defineEmits(['search-completed'])
 
+// 유틸리티 함수들
 function escapeHTML(str) {
+  if (!str || typeof str !== 'string') return ''
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -44,6 +46,7 @@ function escapeHTML(str) {
 }
 
 function wrapText(text, maxLength = 20) {
+  if (!text || typeof text !== 'string') return ''
   const words = escapeHTML(text).split(' ')
   let result = ''
   let line = ''
@@ -58,20 +61,20 @@ function wrapText(text, maxLength = 20) {
 }
 
 const openOverlay = (marker, item) => {
-  if (sharedOverlay) sharedOverlay.setMap(null)
+  if (!marker || !item || !map.value) return
+
+  // 기존 오버레이 정리
+  if (sharedOverlay) {
+    sharedOverlay.setMap(null)
+    sharedOverlay = null
+  }
 
   const content = document.createElement('div')
   content.className = 'wrap'
   content.innerHTML = `
     <div class="info">
-      <div class="title" style="
-        font-size: 14px;
-        font-weight: bold;
-        line-height: 1.4;
-        white-space: normal;
-        word-break: keep-all;
-      ">
-        ${escapeHTML(item.title)}
+      <div class="title" style="font-size: 14px; font-weight: bold; line-height: 1.4; white-space: normal; word-break: keep-all;">
+        ${escapeHTML(item.title || '제목 없음')}
         <div class="close" title="닫기"></div>
       </div>
       <div class="body">
@@ -79,14 +82,13 @@ const openOverlay = (marker, item) => {
           <img src="${item.firstImage || 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png'}" width="73" height="70">
         </div>
         <div class="desc">
-          <div class="ellipsis">${wrapText(escapeHTML(item.address))}</div>
-          ${item.tel ? `<div class="jibun ellipsis">${item.tel}</div>` : ''}
+          <div class="ellipsis">${wrapText(item.address || '주소 정보 없음')}</div>
+          ${item.tel ? `<div class="jibun ellipsis">${escapeHTML(item.tel)}</div>` : ''}
         </div>
       </div>
-    </div>
-  `
+    </div>`
 
-  sharedOverlay = new kakao.maps.CustomOverlay({
+  sharedOverlay = new window.kakao.maps.CustomOverlay({
     content,
     map: map.value,
     position: marker.getPosition(),
@@ -98,156 +100,196 @@ const openOverlay = (marker, item) => {
   if (closeBtn) {
     const closeHandler = () => {
       closeBtn.removeEventListener('click', closeHandler)
-      sharedOverlay.setMap(null)
-      sharedOverlay = null
+      if (sharedOverlay) {
+        sharedOverlay.setMap(null)
+        sharedOverlay = null
+      }
     }
     closeBtn.addEventListener('click', closeHandler)
   }
 }
 
-const renderAttractions = (attractions) => {
-  if (!map.value) return
+// 모든 마커 제거
+const clearMarkers = () => {
+  // 개별 마커 제거
+  currentMarkers.value.forEach((marker) => {
+    marker.setMap(null)
+  })
+  currentMarkers.value = []
+  markerMap.clear()
+  attractionMap.clear()
+}
 
+const renderAttractions = (attractions) => {
+  if (!map.value || !isMapReady.value) return
+
+  // 기존 마커 모두 제거
+  clearMarkers()
+
+  // 기존 오버레이 제거
   if (sharedOverlay) {
     sharedOverlay.setMap(null)
     sharedOverlay = null
   }
 
-  kakaoMarkers.value.forEach((marker) => marker.setMap(null))
-  kakaoMarkers.value = []
-  markerMap.clear()
-  attractionMap.clear()
-
-  // 현재 지도 레벨 가져오기
-  const currentLevel = map.value.getLevel()
-  const maxVisibleLevel = 12 // 너무 멀리 있으면 마커 안 보이게
-
-  if (currentLevel > maxVisibleLevel) {
-    console.log(`🔕 현재 레벨 ${currentLevel} → 너무 멀어서 마커 생략됨`)
-    emit('search-completed', []) // 리스트도 비움
+  if (!attractions || attractions.length === 0) {
+    emit('search-completed', [])
     return
   }
 
-  const markerBounds = new window.kakao.maps.LatLngBounds()
+  // 현재 지도 레벨 체크
+  const currentLevel = map.value.getLevel()
+  const maxVisibleLevel = 12
+
+  if (currentLevel > maxVisibleLevel) {
+    console.log(`🔕 현재 레벨 ${currentLevel} → 너무 멀어서 마커 생략됨`)
+    emit('search-completed', [])
+    return
+  }
+
+  // 유효한 관광지 필터링
+  const validAttractions = attractions.filter((item) => {
+    if (!item) return false
+    const lat = parseFloat(item.latitude)
+    const lng = parseFloat(item.longitude)
+    const isValidCoord = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
+
+    if (!isValidCoord) return false
+    if (item.category === 'C01') return false
+
+    // 카테고리 필터링
+    if (!props.selectedCategory) return true
+    return item.category === props.selectedCategory
+  })
+
+  if (validAttractions.length === 0) {
+    emit('search-completed', [])
+    return
+  }
+
+  // 마커 이미지 설정
   const imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png'
   const imageSize = new window.kakao.maps.Size(24, 35)
 
-  const filteredAttractions = attractions.filter((item) => {
-    const categoryCode = item.category
-    if (categoryCode === 'C01') return false
-    if (!props.selectedCategory) return true
-    return categoryCode === props.selectedCategory
-  })
-
-  filteredAttractions.forEach((item) => {
+  // 마커 생성 (개별 마커로)
+  const markers = validAttractions.map((item) => {
     const position = new window.kakao.maps.LatLng(item.latitude, item.longitude)
     const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize)
 
     const marker = new window.kakao.maps.Marker({
-      map: map.value,
-      position,
-      title: item.title,
+      position: position,
+      title: item.title || '제목 없음',
       image: markerImage,
     })
 
-    kakao.maps.event.addListener(marker, 'click', () => {
+    // 마커 클릭 이벤트
+    window.kakao.maps.event.addListener(marker, 'click', () => {
       openOverlay(marker, item)
     })
 
-    kakaoMarkers.value.push(marker)
+    // 개별 마커를 지도에 직접 추가
+    marker.setMap(map.value)
+
+    // Map에 저장
     markerMap.set(item.contentId, marker)
     attractionMap.set(item.contentId, item)
-    markerBounds.extend(position)
+
+    return marker
   })
 
-  emit('search-completed', filteredAttractions)
+  currentMarkers.value = markers
+  emit('search-completed', validAttractions)
 }
 
 const focusMarker = (contentId) => {
-  if (!map.value || !markerMap.has(contentId)) return
-  kakaoMarkers.value.forEach((m) => m.setMap(null))
+  if (!map.value || !contentId || !markerMap.has(contentId)) return
+
   const marker = markerMap.get(contentId)
-  const item = attractionMap.get(contentId)
-  if (marker && item) {
-    marker.setMap(map.value)
+  const attraction = attractionMap.get(contentId)
+
+  if (marker && attraction) {
     map.value.setCenter(marker.getPosition())
-    openOverlay(marker, item)
+    openOverlay(marker, attraction)
   }
 }
 
-defineExpose({ renderAttractions, focusMarker })
-
-const watchMapInfo = () => {
-  if (!map.value || !window.kakao) return
+const getCurrentMapInfo = () => {
+  if (!map.value || !isMapReady.value) return null
 
   const bounds = map.value.getBounds()
-  if (!bounds) return
+  if (!bounds) return null
 
   const level = map.value.getLevel()
   const center = map.value.getCenter()
-  const mapTypeId = map.value.getMapTypeId()
+  const sw = bounds.getSouthWest()
+  const ne = bounds.getNorthEast()
 
-  const swLatLng = bounds.getSouthWest()
-  const neLatLng = bounds.getNorthEast()
-
-  emit('map-info-updated', {
+  return {
     level,
     center: { lat: center.getLat(), lng: center.getLng() },
-    type: mapTypeId,
     bounds: {
-      ne: { lat: neLatLng.getLat(), lng: neLatLng.getLng() },
-      sw: { lat: swLatLng.getLat(), lng: swLatLng.getLng() },
+      ne: { lat: ne.getLat(), lng: ne.getLng() },
+      sw: { lat: sw.getLat(), lng: sw.getLng() },
     },
-  })
+  }
 }
+
+defineExpose({
+  renderAttractions,
+  focusMarker,
+  getCurrentMapInfo,
+})
 
 const loadKakaoMapsScript = () => {
   return new Promise((resolve) => {
-    if (window.kakao && window.kakao.maps) {
+    if (window.kakao?.maps) {
       resolve()
-    } else {
-      const script = document.createElement('script')
-      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&libraries=services,clusterer,drawing&autoload=false`
-
-      script.onload = () => {
-        window.kakao.maps.load(() => resolve())
-      }
-      document.head.appendChild(script)
+      return
     }
+
+    const script = document.createElement('script')
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&libraries=services,clusterer&autoload=false`
+
+    script.onload = () => {
+      window.kakao.maps.load(() => {
+        resolve()
+      })
+    }
+
+    script.onerror = () => {
+      errorMessage.value = '카카오맵 로드 실패'
+      resolve()
+    }
+
+    document.head.appendChild(script)
   })
 }
 
-let idleListener = null
-
 onMounted(async () => {
   try {
+    isLoading.value = true
+
     await loadKakaoMapsScript()
-    window.kakao.maps.load(() => {
-      map.value = new window.kakao.maps.Map(mapContainer.value, {
-        center: new window.kakao.maps.LatLng(37.5014, 127.0394),
-        level: 11,
-      })
-      isMapReady.value = true
-      idleListener = window.kakao.maps.event.addListener(map.value, 'idle', () => {
-        if (map.value && map.value.getBounds) {
-          watchMapInfo()
-        }
-      })
+
+    if (!mapContainer.value) {
+      throw new Error('지도 컨테이너를 찾을 수 없음')
+    }
+
+    await nextTick()
+
+    // 지도 생성
+    map.value = new window.kakao.maps.Map(mapContainer.value, {
+      center: new window.kakao.maps.LatLng(37.5014, 127.0394),
+      level: 8,
     })
-  } catch (e) {
-    errorMessage.value = '지도를 불러오지 못했습니다.'
-    console.error('❌ 지도 로딩 실패:', e)
+
+    isMapReady.value = true
+  } catch (error) {
+    errorMessage.value = '지도 초기화 실패'
+  } finally {
+    isLoading.value = false
   }
 })
-
-watch(
-  () => [props.searchKeyword, props.selectedCategory],
-  async () => {
-    if (!isMapReady.value || !map.value || !map.value.getBounds) return
-    watchMapInfo()
-  },
-  { deep: true }
-)
 
 watch(
   () => props.selectedContentId,
@@ -259,14 +301,20 @@ watch(
 )
 
 onUnmounted(() => {
-  kakaoMarkers.value.forEach((marker) => marker.setMap(null))
-  if (map.value && idleListener) {
-    window.kakao.maps.event.removeListener(map.value, 'idle', idleListener)
+  clearMarkers()
+
+  if (sharedOverlay) {
+    sharedOverlay.setMap(null)
+    sharedOverlay = null
+  }
+
+  if (map.value) {
+    map.value = null
   }
 })
 </script>
 
-<style>
+<style scoped>
 .map-wrapper {
   width: 100%;
   height: 100vh;
@@ -304,7 +352,9 @@ onUnmounted(() => {
   padding: 5px 10px;
   border-radius: 4px;
 }
+</style>
 
+<style>
 .wrap {
   width: 288px;
   height: 132px;
@@ -320,15 +370,18 @@ onUnmounted(() => {
   position: relative;
   z-index: 1000;
 }
+
 .wrap * {
   padding: 0;
   margin: 0;
 }
+
 .wrap .info {
   width: 100%;
   height: 100%;
   position: relative;
 }
+
 .info .title {
   padding: 5px 10px;
   height: 30px;
@@ -340,6 +393,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
 }
+
 .info .close {
   width: 17px;
   height: 17px;
@@ -347,26 +401,31 @@ onUnmounted(() => {
   background-size: cover;
   cursor: pointer;
 }
+
 .info .body {
   position: relative;
   overflow: hidden;
   display: flex;
   padding: 10px;
 }
+
 .info .desc {
   margin-left: 10px;
   flex: 1;
 }
+
 .desc .ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .desc .jibun {
   font-size: 11px;
   color: #888;
   margin-top: 4px;
 }
+
 .info .img {
   flex-shrink: 0;
   width: 73px;
@@ -374,11 +433,13 @@ onUnmounted(() => {
   border: 1px solid #ddd;
   overflow: hidden;
 }
+
 .info .img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .info:after {
   content: '';
   position: absolute;
