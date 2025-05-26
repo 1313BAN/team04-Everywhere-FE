@@ -42,7 +42,7 @@
           <!-- 새 이미지 추가 -->
           <div class="mb-4">
             <label class="block mb-1 font-semibold">새 이미지 추가</label>
-            <input type="file" multiple @change="handleFiles" />
+            <input type="file" multiple @change="handleFiles" accept="image/*" />
           </div>
 
           <!-- 제출 버튼 -->
@@ -50,8 +50,10 @@
             <button
               type="submit"
               class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+              :disabled="isSubmitting"
+              :class="{ 'opacity-50 cursor-not-allowed': isSubmitting }"
             >
-              수정 완료
+              {{ isSubmitting ? '수정 중...' : '수정 완료' }}
             </button>
           </div>
         </form>
@@ -79,6 +81,7 @@ const content = ref('')
 const files = ref([]) // 새로 추가한 파일
 const existingImages = ref([]) // 기존 이미지 URL
 const removedImages = ref([]) // 제거된 기존 이미지 URL
+const isSubmitting = ref(false)
 
 const handleFiles = (e) => {
   const input = e.target
@@ -120,6 +123,14 @@ const fetchPost = async () => {
 const uploadNewImages = async () => {
   if (files.value.length === 0) return []
 
+  // 파일 크기 검증 (예: 5MB 제한)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+  const oversizedFiles = files.value.filter((file) => file.size > MAX_FILE_SIZE)
+  if (oversizedFiles.length > 0) {
+    alert(`파일 크기는 5MB를 초과할 수 없습니다.`)
+    throw new Error('파일 크기 초과')
+  }
+
   const formData = new FormData()
   files.value.forEach((file) => formData.append('images', file))
 
@@ -139,6 +150,9 @@ const uploadNewImages = async () => {
 }
 
 const submitEdit = async () => {
+  if (isSubmitting.value) return
+
+  isSubmitting.value = true
   try {
     // 1. 새 이미지 업로드
     const newImageUrls = await uploadNewImages()
@@ -151,6 +165,7 @@ const submitEdit = async () => {
       title: title.value,
       content: content.value,
       imageUrls: finalImageUrls,
+      removedImageUrls: removedImages.value,
     }
 
     await axios.put(`/api/board/${route.params.id}`, payload, {
@@ -164,6 +179,8 @@ const submitEdit = async () => {
   } catch (err) {
     console.error('수정 실패', err)
     alert('수정 실패!')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
