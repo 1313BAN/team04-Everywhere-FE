@@ -146,4 +146,41 @@ const handleLogout = async () => {
     alert('로그아웃 중 문제가 발생했습니다.')
   }
 }
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return null
+  }
+}
+
+onMounted(() => {
+  if (!props.alwaysLight) {
+    checkScroll()
+    window.addEventListener('scroll', checkScroll, { passive: true })
+  }
+
+  const accessToken = localStorage.getItem('accessToken')
+  if (accessToken) {
+    const decoded = parseJwt(accessToken)
+    const now = Math.floor(Date.now() / 1000)
+
+    if (!decoded || decoded.exp < now) {
+      userStore.logout()
+      router.push('/login')
+    }
+  } else {
+    userStore.logout()
+    router.push('/login')
+  }
+})
 </script>
