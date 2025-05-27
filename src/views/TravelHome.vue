@@ -20,11 +20,14 @@
       <div class="w-full max-w-md flex flex-col gap-3">
         <div class="relative">
           <input
+            v-model="searchKeyword"
             type="text"
             placeholder="어디로 여행을 떠나시나요?"
             class="w-full px-4 py-3 rounded-md shadow-md text-gray-800"
           />
-          <button class="absolute right-3 top-1/2 -translate-y-1/2 text-xl">🔍</button>
+          <button @click="goSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-xl">
+            🔍
+          </button>
         </div>
         <button
           @click="goLogin"
@@ -196,11 +199,23 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import Header from '../components/Header.vue'
 import { useRouter } from 'vue-router'
 import TypewriterText from '../components/TypewriterText.vue'
 
 const router = useRouter()
+
+const searchKeyword = ref('')
+
+const goSearch = () => {
+  if (searchKeyword.value.trim()) {
+    router.push({
+      path: '/map',
+      query: { keyword: searchKeyword.value.trim() },
+    })
+  }
+}
 
 const goLogin = () => {
   const token = localStorage.getItem('accessToken')

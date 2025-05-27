@@ -1,18 +1,52 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-100 pt-[64px]">
     <Header :alwaysLight="true" />
+
+    <!-- 검색창 고정 -->
+    <div class="absolute top-[80px] left-5 z-30 bg-white rounded-xl shadow-lg p-2 flex w-[400px]">
+      <input
+        v-model="searchKeyword"
+        type="text"
+        placeholder="장소 검색하기"
+        class="flex-1 px-3 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        @keyup.enter="handleSearchKeyword"
+      />
+      <button
+        @click="handleSearchKeyword"
+        class="bg-blue-500 text-white px-4 py-2 hover:bg-blue-600"
+      >
+        검색
+      </button>
+      <!-- 🔄 새로고침 버튼 -->
+      <button @click="requestMarkers" class="refresh-button ml-2" title="현 지도에서 새로고침">
+        🔄
+      </button>
+    </div>
+
+    <!-- 카테고리 -->
+    <div class="absolute top-[130px] left-5 z-30 flex gap-2 bg-white rounded-xl shadow p-2">
+      <button
+        v-for="category in categories"
+        :key="category.id"
+        @click="selectCategory(category)"
+        :class="[
+          'px-3 py-1 rounded',
+          selectedCategory === category.id ? 'bg-blue-600 text-white' : 'bg-gray-100',
+        ]"
+      >
+        {{ category.icon }} {{ category.name }}
+      </button>
+    </div>
 
     <!-- 수직 분할 가능한 컨테이너 -->
     <div class="flex h-[calc(100vh-64px)] overflow-hidden">
       <!-- 왼쪽 지도 영역 -->
-      <div :style="{ width: leftWidth + 'px' }" class="relative overflow-hidden">
-        <div id="map" class="w-full h-full"></div>
-        <div v-if="isLoading" class="loading-overlay">
-          <div class="loading-spinner">로딩 중...</div>
-        </div>
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
+      <div
+        :style="{ width: leftWidth + 'px' }"
+        class="relative overflow-hidden"
+        ref="mapContainerWrapper"
+      >
+        <KakaoMap ref="kakaoMapRef" />
       </div>
 
       <!-- 사이 간격 조절 핸들 -->
@@ -22,16 +56,15 @@
       ></div>
 
       <!-- 오른쪽 여행 계획 작성 영역 -->
-      <div class="flex-1 bg-white p-6 overflow-y-auto">
-        <!-- 계획 입력 -->
-        <div>
+      <div class="flex-1 bg-white p-10 pt-16 overflow-y-auto max-w-3xl mx-auto">
+        <div class="space-y-4">
           <input
             type="text"
             v-model="plan.title"
-            class="w-full border px-4 py-2 rounded-lg mb-4 text-xl font-semibold"
+            class="w-full border px-4 py-2 rounded-lg text-xl font-semibold"
             placeholder="여행 제목을 입력하세요"
           />
-          <div class="flex gap-4 mb-4">
+          <div class="flex gap-4">
             <input
               type="date"
               v-model="plan.startDate"
@@ -47,9 +80,8 @@
           ></textarea>
         </div>
 
-        <!-- 일자별 계획 -->
-        <div class="mt-8">
-          <div v-for="(day, index) in plan.days" :key="index" class="mb-6 border rounded-lg">
+        <div class="mt-8 space-y-6">
+          <div v-for="(day, index) in plan.days" :key="index" class="border rounded-lg">
             <div class="flex justify-between items-center bg-gray-50 px-4 py-3">
               <div class="font-semibold text-lg">Day {{ index + 1 }} ({{ day.date }})</div>
               <div class="flex gap-2">
@@ -80,7 +112,6 @@
               ➕ 장소 추가하기
             </button>
           </div>
-
           <button
             class="w-full py-3 border border-dashed rounded-lg text-gray-600 hover:bg-gray-100"
             @click="addDay"
@@ -105,93 +136,74 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
 import Header from '@/components/Header.vue'
+import KakaoMap from '@/components/KakaoMap.vue'
+import axios from '@/api/axios'
 
-const plan = ref({
-  title: '서울 여행 계획',
-  startDate: '2025-06-15',
-  endDate: '2025-06-17',
-  description: '서울의 주요 관광지와 맛집을 탐방하는 여행입니다.',
-  days: [
-    {
-      date: '2025-06-15',
-      places: [
-        { name: '경복궁', time: '10:00 - 12:00' },
-        { name: '광화문 광장', time: '12:30 - 14:00' },
-        { name: '인사동', time: '14:30 - 16:30' },
-      ],
-    },
-    {
-      date: '2025-06-16',
-      places: [{ name: '남산타워', time: '10:00 - 12:00' }],
-    },
-    {
-      date: '2025-06-17',
-      places: [{ name: '한강공원', time: '10:00 - 13:00' }],
-    },
-  ],
-})
+const kakaoMapRef = ref()
+const mapContainerWrapper = ref()
+const searchKeyword = ref('')
+const selectedCategory = ref(null)
 
-// 지도 로딩 관련
-const mapContainer = ref(null)
-const map = ref(null)
-const isLoading = ref(false)
-const errorMessage = ref('')
+const categories = [
+  { id: 'ALL', name: '전체', icon: '🌍' },
+  { id: 'A01', name: '자연', icon: '🌳' },
+  { id: 'A02', name: '문화', icon: '🏭' },
+  { id: 'A03', name: '레포츠', icon: '🚵' },
+  { id: 'A04', name: '쇼핑', icon: '🏱' },
+  { id: 'A05', name: '식당', icon: '🍽️' },
+  { id: 'B02', name: '숙박', icon: '🏨' },
+  { id: 'C01', name: '추천코스', icon: '💯' },
+]
 
-const leftWidth = ref(window.innerWidth * 0.6) // 60% = 3:2
-let isDragging = false
-
-const loadKakaoMapsScript = () => {
-  return new Promise((resolve) => {
-    if (window.kakao?.maps) {
-      resolve()
-      return
-    }
-    const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&autoload=false`
-    script.onload = () => {
-      window.kakao.maps.load(() => resolve())
-    }
-    script.onerror = () => {
-      errorMessage.value = '카카오맵 로드 실패'
-      resolve()
-    }
-    document.head.appendChild(script)
-  })
+const handleSearchKeyword = () => {
+  if (!searchKeyword.value.trim()) return
+  requestMarkers()
 }
 
-onMounted(async () => {
+const selectCategory = (category) => {
+  selectedCategory.value = category.id
+  searchKeyword.value = category.name
+  requestMarkers()
+}
+
+const requestMarkers = async () => {
+  if (!kakaoMapRef.value) return
+  const mapInfo = kakaoMapRef.value.getCurrentMapInfo()
+  if (!mapInfo) return
+  const { sw, ne } = mapInfo.bounds
+
   try {
-    isLoading.value = true
-    await loadKakaoMapsScript()
-    await nextTick()
-    const container = document.getElementById('map')
-    if (!container) throw new Error('지도 컨테이너 없음')
-    map.value = new window.kakao.maps.Map(container, {
-      center: new window.kakao.maps.LatLng(37.5665, 126.978),
-      level: 8,
-    })
-  } catch (err) {
-    console.error(err)
-    errorMessage.value = '지도 초기화 실패'
-  } finally {
-    isLoading.value = false
+    let url = ''
+    if (!selectedCategory.value || selectedCategory.value === 'ALL') {
+      url = `/api/map?swLatLng=${sw.lat},${sw.lng}&neLatLng=${ne.lat},${ne.lng}`
+    } else {
+      url = `/api/map/category/${selectedCategory.value}`
+    }
+    const res = await axios.get(url)
+    const attractions = res.data.data.attractions || []
+    kakaoMapRef.value.renderAttractions(attractions)
+  } catch (e) {
+    console.error('마커 요청 실패', e)
   }
+}
+
+const plan = ref({
+  title: '',
+  startDate: '',
+  endDate: '',
+  description: '',
+  days: [],
 })
 
-onUnmounted(() => {
-  if (map.value) {
-    map.value = null
-  }
-})
-
+const leftWidth = ref(window.innerWidth * 0.6)
+let isDragging = false
 const startDragging = (e) => {
   isDragging = true
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('mouseup', stopDragging)
 }
-
 const onDrag = (e) => {
   if (isDragging) {
     const min = 300
@@ -199,17 +211,11 @@ const onDrag = (e) => {
     leftWidth.value = Math.min(Math.max(e.clientX, min), max)
   }
 }
-
 const stopDragging = () => {
   isDragging = false
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDragging)
-
-  // ⭐ 지도 리사이즈 반영
-  if (map.value) {
-    window.kakao.maps.event.trigger(map.value, 'resize') // 이 방식도 됨
-    map.value.relayout() // 또는 이 방식으로 직접 강제 리레이아웃
-  }
+  nextTick(() => window.dispatchEvent(new Event('resize')))
 }
 
 const addDay = () => plan.value.days.push({ date: '', places: [] })
@@ -222,10 +228,19 @@ const editPlace = (dayIndex, placeIndex) => alert('장소 수정 예정')
 </script>
 
 <style scoped>
-#map {
-  width: 100%;
-  height: 100%;
+.refresh-button {
+  background: none;
+  border: none;
+  padding: 0 10px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
+.refresh-button:hover {
+  background-color: #f0f0f0;
+  border-radius: 6px;
+}
+
 .loading-overlay {
   position: absolute;
   top: 0;

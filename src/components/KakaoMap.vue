@@ -280,7 +280,7 @@ onMounted(async () => {
     // 지도 생성
     map.value = new window.kakao.maps.Map(mapContainer.value, {
       center: new window.kakao.maps.LatLng(37.5014, 127.0394),
-      level: 8,
+      level: 3,
     })
 
     isMapReady.value = true
