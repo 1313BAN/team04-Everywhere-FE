@@ -54,6 +54,12 @@ const routes = [
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },
+  {
+    path: '/plans',
+    name: 'PlanPage',
+    component: () => import('@/views/PlanPage.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({

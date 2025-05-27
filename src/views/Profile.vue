@@ -62,7 +62,7 @@
 
         <!-- 메인 콘텐츠 -->
         <main class="flex-1 space-y-6">
-          <!-- 내 정보 관리 섹션 -->
+          <!-- 프로필 정보 섹션 -->
           <section class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-2xl font-bold text-gray-800">내 정보 관리</h2>
@@ -93,23 +93,22 @@
             </form>
           </section>
 
-          <!-- 작성한 게시글 섹션 -->
+          <!-- 게시글 카드 형태 섹션 -->
           <section class="bg-white rounded-lg shadow p-6">
             <div class="mb-4">
               <h2 class="text-2xl font-bold text-gray-800">작성한 게시글</h2>
             </div>
-            <ul class="space-y-3">
-              <li
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
                 v-for="post in userInfo.boards"
                 :key="post.id"
-                class="flex justify-between items-center"
+                class="p-4 bg-gray-50 rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                @click="router.push(`/board/${post.id}`)"
               >
-                <router-link :to="`/posts/${post.id}`" class="text-gray-700 hover:text-indigo-600">
-                  {{ post.title }}
-                </router-link>
-                <span class="text-sm text-gray-500">{{ formatDate(post.createdAt) }}</span>
-              </li>
-            </ul>
+                <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ post.title }}</h3>
+                <p class="text-sm text-gray-500">{{ formatDate(post.createdAt) }}</p>
+              </div>
+            </div>
           </section>
         </main>
       </div>
