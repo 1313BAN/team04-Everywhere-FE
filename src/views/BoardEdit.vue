@@ -57,25 +57,32 @@ const fetchPost = async () => {
   }
 }
 
-const submitEdit = async () => {
-  try {
-    await axios.put(
-      `/api/board/${route.params.id}`,
-      {
-        title: title.value,
-        content: content.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      }
-    )
+async function submitForm() {
+  const formData = new FormData()
 
-    alert('수정 완료!')
-    router.push(`/board/${route.params.id}`)
+  const jsonData = {
+    title: title.value,
+    content: content.value,
+  }
+  const jsonBlob = new Blob([JSON.stringify(jsonData)], { type: 'application/json' })
+  formData.append('data', jsonBlob)
+
+  files.value.forEach((file) => {
+    formData.append('images', file)
+  })
+
+  try {
+    const res = await axios.put(`/api/board/${route.params.id}`, formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+
+    alert('게시글이 수정되었습니다!')
+    router.push(`/board/${res.data.data.id}`)
   } catch (err) {
-    alert('수정 실패!')
+    console.error('❌ 수정 실패:', err)
+    alert('등록에 실패했습니다. 다시 시도해주세요.')
   }
 }
 
