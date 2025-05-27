@@ -1,11 +1,12 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import KakaoMap from '@/components/KakaoMap.vue'
 import axios from '@/api/axios'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 // 상태 관리
 const router = useRouter()
+const route = useRoute() // ✅ 쿼리 수신
 const searchKeyword = ref('')
 const selectedCategory = ref(null)
 const selectedContentId = ref(null)
@@ -13,7 +14,7 @@ const attractionList = ref([])
 const kakaoMapRef = ref(null)
 
 const categories = reactive([
-  { id: 'ALL', name: '전체', icon: '🌍' }, // 🚨 전체 카테고리 추가
+  { id: 'ALL', name: '전체', icon: '🌍' },
   { id: 'A01', name: '자연', icon: '🌳' },
   { id: 'A02', name: '문화', icon: '🏯' },
   { id: 'A03', name: '레포츠', icon: '🚵' },
@@ -31,19 +32,27 @@ const clearSearch = () => {
   searchKeyword.value = ''
 }
 
-// 🚨 카테고리 선택 (전체 포함)
+// 초기 진입 시 쿼리로 받은 keyword 적용
+onMounted(() => {
+  const keywordFromQuery = route.query.keyword
+  if (keywordFromQuery && typeof keywordFromQuery === 'string' && keywordFromQuery.trim()) {
+    searchKeyword.value = keywordFromQuery
+    selectedCategory.value = 'ALL'
+    // 지도가 초기화된 후 검색 실행
+    nextTick(() => {
+      handleSearchKeyword()
+    })
+  }
+})
+
+// 카테고리 선택
 const selectCategory = (category) => {
   if (selectedCategory.value === category.id) {
-    // 카테고리 해제
     selectedCategory.value = null
     searchKeyword.value = ''
-    // if (kakaoMapRef.value) {
-    //   kakaoMapRef.value.renderAttractions([])
-    // }
     updateAttractions([])
     console.log('카테고리 선택 해제')
   } else {
-    // 카테고리 선택
     selectedCategory.value = category.id
     searchKeyword.value = category.name
     console.log(`"${category.name}" 카테고리 선택됨. 현 지도에서 검색 버튼을 눌러주세요.`)
@@ -56,14 +65,11 @@ const updateAttractions = (items) => {
 
 const onAttractionClick = (attraction) => {
   selectedContentId.value = attraction.contentId
-  if (kakaoMapRef.value) {
-    kakaoMapRef.value.focusMarker(attraction.contentId)
-  }
+  kakaoMapRef.value?.focusMarker(attraction.contentId)
 }
 
-// 🚨 수정된 메인 검색 함수 - 전체 검색 지원
+// 지도에서 관광지 데이터 요청
 const requestMarkers = async () => {
-  // 현재 지도 정보 가져오기
   if (!kakaoMapRef.value) {
     alert('지도가 준비되지 않았습니다.')
     return
@@ -75,17 +81,7 @@ const requestMarkers = async () => {
     return
   }
 
-  const { level, bounds } = mapInfo
-
-  // // 레벨 체크
-  // if (level > 12) {
-  //   alert('지도를 더 확대해주세요. (현재 너무 멀리 보고 있습니다)')
-  //   console.log(`🔕 레벨 ${level} → 너무 멀어 검색 취소`)
-  //   updateAttractions([])
-  //   kakaoMapRef.value.renderAttractions([])
-  //   return
-  // }
-
+  const { bounds } = mapInfo
   const sw = bounds.sw
   const ne = bounds.ne
 
@@ -96,44 +92,23 @@ const requestMarkers = async () => {
     let apiUrl = ''
     let attractions = []
 
-    // 🚨 카테고리에 따른 API 호출 분기
     if (!selectedCategory.value || selectedCategory.value === 'ALL') {
-      // 전체 검색 - 새로운 API 사용
       apiUrl = `/api/map?swLatLng=${sw.lat},${sw.lng}&neLatLng=${ne.lat},${ne.lng}`
-      console.log('📡 전체 검색 API 호출:', apiUrl)
-
       const { data } = await axios.get(apiUrl)
-      if (!data?.data?.attractions) {
-        throw new Error('서버 응답이 올바르지 않습니다')
-      }
-      attractions = data.data.attractions
+      attractions = data?.data?.attractions || []
     } else {
-      // 카테고리별 검색 - 기존 API 사용
       apiUrl = `/api/map/category/${selectedCategory.value}`
-      console.log('📡 카테고리별 검색 API 호출:', apiUrl)
-
       const { data } = await axios.get(apiUrl)
-      if (!data?.data?.attractions) {
-        throw new Error('서버 응답이 올바르지 않습니다')
-      }
-      attractions = data.data.attractions
-
-      // 현 지도 범위 안에 있는 항목만 필터링 (카테고리별 검색일 때만)
-      attractions = attractions.filter((item) => {
-        if (!item.latitude || !item.longitude || isNaN(item.latitude) || isNaN(item.longitude)) {
+      attractions = (data?.data?.attractions || []).filter((item) => {
+        if (!item.latitude || !item.longitude || isNaN(item.latitude) || isNaN(item.longitude))
           return false
-        }
-
         const lat = Number(item.latitude)
         const lng = Number(item.longitude)
-
         return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng
       })
     }
 
     console.log(`✅ 검색 완료: ${attractions.length}개 발견`)
-
-    // 지도 & 리스트 업데이트
     updateAttractions(attractions)
     kakaoMapRef.value.renderAttractions(attractions)
 
@@ -146,15 +121,12 @@ const requestMarkers = async () => {
   }
 }
 
-// 🚨 수정된 검색창 처리 - 카테고리 없이도 가능
+// 검색창 엔터 or 버튼 클릭 시 실행
 const handleSearchKeyword = () => {
   if (!searchKeyword.value.trim()) {
-    // 검색어가 없으면 전체 검색으로 처리
     selectedCategory.value = 'ALL'
     searchKeyword.value = '전체'
   }
-
-  // 검색 실행
   requestMarkers()
 }
 </script>
