@@ -17,7 +17,7 @@ travel-app/
 ├── src/
 │   ├── api/
 │   │   ├── axios.js                   # Axios 공통 설정 및 인터셉터
-│   │   ├── index.js                   # 모든 API 서비스의 통합 export
+│   │   ├── index.js                   # 모든 API 서비스 통합 export
 │   │   ├── userAuthService.js         # 로그인, 로그아웃, 인증 관련 API
 │   │   ├── userProfileService.js      # 사용자 프로필 관련 API
 │   │   └── userService.js             # 기타 사용자 관련 API
@@ -29,32 +29,37 @@ travel-app/
 │   │   ├── RecommendedDestination.vue # 추천 여행지 카드 리스트
 │   │   ├── SearchBox.vue             # 검색 입력창 UI
 │   │   ├── SearchResults.vue         # 검색 결과 목록
-│   │   └── TravelOption.vue          # 여행 테마/옵션 선택 컴포넌트
+│   │   ├── TravelOption.vue          # 여행 테마/옵션 선택 컴포넌트
+│   │   └── TypewriterText.vue        # 타이핑 애니메이션 텍스트 컴포넌트
 │   ├── router/
 │   │   └── router.js                  # Vue Router 설정
 │   ├── stores/
-│   │   ├── auth.js                    # 인증 관련 상태 (예: 토큰)
-│   │   └── user.js                    # 사용자 정보 관련 상태
+│   │   ├── auth.js                    # 인증 상태 (예: 토큰)
+│   │   └── user.js                    # 사용자 정보 상태
 │   ├── views/
+│   │   ├── BoardCreate.vue            # 게시글 작성 페이지
+│   │   ├── BoardDetail.vue            # 게시글 상세 페이지
+│   │   ├── BoardEdit.vue              # 게시글 수정 페이지
 │   │   ├── ImproveSignup.vue          # 개선된 회원가입 페이지
 │   │   ├── Login.vue                  # 로그인 페이지
-│   │   ├── Map.vue                    # 지도 중심 페이지 (기본 지도)
-│   │   ├── Profile.vue                # 사용자 프로필 (마이페이지)
-│   │   ├── TravelHome.vue             # 여행 추천 홈 화면
-│   │   └── UpdatedMap.vue             # 업데이트된 지도 페이지 (지도 기능 강화판)
-│   ├── App.vue                        # 애플리케이션 루트 컴포넌트
-│   ├── index.css                      # 전체 프로젝트에 적용되는 전역 CSS
+│   │   ├── Map.vue                    # 기본 지도 페이지
+│   │   ├── PlanPage.vue               # 여행 계획 작성 페이지
+│   │   ├── Profile.vue                # 마이페이지 (사용자 프로필)
+│   │   ├── TravelHome.vue             # 여행 홈 화면
+│   │   └── UpdatedMap.vue             # 카카오맵 중심 지도 페이지
+│   ├── App.vue                        # 루트 컴포넌트
+│   ├── index.css                      # 전역 CSS
 │   └── main.js                        # 앱 초기화, 라우터/스토어 마운트
-├── index.html                         # Vite HTML 템플릿 엔트리 포인트
-├── vite.config.js                     # Vite 설정 파일
-├── tailwind.config.js                 # Tailwind CSS 설정
-├── postcss.config.js                  # PostCSS 설정
-├── package.json                       # 프로젝트 의존성과 스크립트
-├── package-lock.json                  # 의존성 고정 버전
-├── .gitignore                         # Git에서 무시할 파일 목록
-├── .prettierrc                        # 코드 스타일 설정 (Prettier)
-├── eslint.config.js                   # 코드 린팅 설정 (ESLint)
-└── README.md                          # 프로젝트 소개 및 설명
+├── index.html                         # Vite 진입 HTML
+├── vite.config.js                     # Vite 설정
+├── tailwind.config.js                # Tailwind 설정
+├── postcss.config.js                 # PostCSS 설정
+├── package.json                       # 프로젝트 설정
+├── package-lock.json                  # 의존성 버전 고정
+├── .gitignore                         # Git 무시 파일
+├── .prettierrc                        # Prettier 설정
+├── eslint.config.js                   # ESLint 설정
+└── README.md                          # 프로젝트 문서
 ```
 
 ## 주요 기능
