@@ -154,17 +154,17 @@ const categories = [
   { id: 'A04', name: '쇼핑', icon: '🏱' },
   { id: 'A05', name: '식당', icon: '🍽️' },
   { id: 'B02', name: '숙박', icon: '🏨' },
-  { id: 'C01', name: '추천코스', icon: '💯' },
 ]
 
 const handleSearchKeyword = () => {
   if (!searchKeyword.value.trim()) return
+  selectedCategory.value = null // 카테고리 선택 초기화
   requestMarkers()
 }
 
 const selectCategory = (category) => {
   selectedCategory.value = category.id
-  searchKeyword.value = category.name
+  searchKeyword.value = '' // 검색어 초기화
   requestMarkers()
 }
 
@@ -186,6 +186,8 @@ const requestMarkers = async () => {
     kakaoMapRef.value.renderAttractions(attractions)
   } catch (e) {
     console.error('마커 요청 실패', e)
+    // 사용자에게 오류 알림
+    alert('마커를 불러오는데 실패했습니다. 다시 시도해주세요.')
   }
 }
 

@@ -32,13 +32,16 @@ const clearSearch = () => {
   searchKeyword.value = ''
 }
 
-// ✅ 초기 진입 시 쿼리로 받은 keyword 적용
+// 초기 진입 시 쿼리로 받은 keyword 적용
 onMounted(() => {
   const keywordFromQuery = route.query.keyword
-  if (keywordFromQuery && typeof keywordFromQuery === 'string') {
+  if (keywordFromQuery && typeof keywordFromQuery === 'string' && keywordFromQuery.trim()) {
     searchKeyword.value = keywordFromQuery
     selectedCategory.value = 'ALL'
-    handleSearchKeyword()
+    // 지도가 초기화된 후 검색 실행
+    nextTick(() => {
+      handleSearchKeyword()
+    })
   }
 })
 
